@@ -1,0 +1,41 @@
+<html>
+    <head>
+        <style>
+            div {
+                border: 1px solid black;
+                width: 70px;
+                height: 70px;
+                display: inline-block;
+                background-color: darkgreen;
+            }
+            .black{
+                background-color: black;
+            }
+            .white{
+                background-color: white;
+            }
+            .pedina{
+                width: 60px;
+                height: 60px;
+                border-radius: 30px;
+            }
+        </style>
+        <script>
+            const generaScacchiera = () => {
+                for(let i=0; i<=63; i++) {
+                    let x = i % 8; 
+                    let y = Math.floor(i / 8);
+                    //console.log(x, y)
+
+                    document.body.innerHTML += '<div x='+x+' y='+y+'></div>';
+                    document.body.innerHTML += (i % 8 == 7) ? '<br>' : '';
+                }
+
+                document.body.innerHTML += "<div class = 'black pedina'></div>"
+            }
+        </script>
+    </head>
+    <body onload="generaScacchiera();">
+
+    </body>
+</html>
