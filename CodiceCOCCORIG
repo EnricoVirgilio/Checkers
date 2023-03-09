@@ -1,0 +1,49 @@
+alessandro.montanari@soluzionifutura.it
+
+<html>
+    <head>
+        <style>
+            div {
+                border: 1px solid black;
+                width: 68px;
+                height: 68px;
+                display: inline-block;
+                background-color: darkgreen;
+                padding: 0px;
+                margin-left: 0px; top: 0px;
+            }
+
+            .black{
+                background-color: black;
+            }
+
+            .white{
+                background-color: white;
+            }
+            .pedina{
+                width: 60px;
+                height: 60px;
+                border-radius: 30px;
+            }
+        </style>
+        <script>
+            const generaScacchiera = () => {
+                for(let i=0; i<=63; i++) {
+                    let x = i % 8; 
+                    let y = Math.floor(i / 8);
+                    //console.log(x, y)
+
+                    document.getElementById("board").innerHTML += '<div x='+x+' y='+y+'></div>';
+                    document.getElementById("board").innerHTML += (i % 8 == 7) ? '<br>' : '';
+                }
+
+                document.body.innerHTML += "<div class = 'black pedina'></div>"
+            }
+        </script>
+    </head>
+    <body onload="generaScacchiera();"> 
+        <div id="outer-board" style="width: 700px; height: 700px; background-color: rgb(59, 22, 2);">
+            <div id="board" style="width: 560px; height: 560px; position: relative; margin-left: 70px; top: 70px;  "></div>
+        </div>
+    </body>
+</html>
