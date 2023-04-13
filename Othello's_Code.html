@@ -3,14 +3,21 @@
         <style>
             div {
                 border: 1px solid black;
-                width: 70px;
-                height: 70px;
-                display: inline-block;
+                width: 68px;
+                height: 68px;
                 background-color: darkgreen;
+                float: left;
+                padding: 0px;
             }
+
+            #board{
+                border: 0px
+            }
+
             .black{
                 background-color: black;
             }
+
             .white{
                 background-color: white;
             }
@@ -18,24 +25,46 @@
                 width: 60px;
                 height: 60px;
                 border-radius: 30px;
+                position: relative;
+                left: 4px;
+                top: 4px;
+
             }
         </style>
         <script>
+            let contatore = 0
             const generaScacchiera = () => {
                 for(let i=0; i<=63; i++) {
-                    let x = i % 8; 
-                    let y = Math.floor(i / 8);
+                    let x = i % 8 +1; 
+                    let y = Math.floor(i / 8) + 1;
                     //console.log(x, y)
 
-                    document.body.innerHTML += '<div x='+x+' y='+y+'></div>';
-                    document.body.innerHTML += (i % 8 == 7) ? '<br>' : '';
+                    let id = String(y)+String(x);
+                    document.getElementById("board").innerHTML += '<div id = "' + id + '" onclick="aggiungiPedina('+ id +')"></div>';
+                    
                 }
-
-                document.body.innerHTML += "<div class = 'black pedina'></div>"
+                board = document.getElementById("board")
+                document.getElementById("44").innerHTML += "<div class = 'white pedina'></div>"
+                document.getElementById("45").innerHTML += "<div class = 'black pedina'></div>"
+                document.getElementById("54").innerHTML += "<div class = 'black pedina'></div>"
+                document.getElementById("55").innerHTML += "<div class = 'white pedina'></div>"
+            }
+            const aggiungiPedina = (id) => {
+                if(document.getElementById(id).innerHTML == ""){
+                    if(contatore % 2 == 0){
+                    document.getElementById(id).innerHTML += "<div class = 'white pedina'></div>"
+                    }
+                    if(contatore % 2 == 1){
+                        document.getElementById(id).innerHTML += "<div class = 'black pedina'></div>"
+                    }
+                    contatore++
+                } 
             }
         </script>
     </head>
-    <body onload="generaScacchiera();">
-
+    <body onload="generaScacchiera();"> 
+        <div id="outer-board" style="width: 698px; height: 698px; background-color: rgb(59, 22, 2);">
+            <div id="board" style="width: 560px; height: 560px; position: relative; left: 70px; top: 70px;  "></div>
+        </div>
     </body>
 </html>
