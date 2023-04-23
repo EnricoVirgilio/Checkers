@@ -1,1101 +1,3 @@
-<html>
-    <head>
-        <style>
-            div {
-                border: 1px solid black;
-                width: 68px;
-                height: 68px;
-                background-color: darkgreen;
-                float: left;
-                padding: 0px;
-            }
-
-            #board{
-                border: 0px
-            }
-
-            .black{
-                background-color: black;
-            }
-
-            .white{
-                background-color: white;
-            }
-            .pedina{
-                width: 60px;
-                height: 60px;
-                border-radius: 30px;
-                position: relative;
-                left: 4px;
-                top: 4px;
-
-            }
-        </style>
-        <script>
-            let contatore = 0
-            const generaScacchiera = () => {
-                for(let i=0; i<=63; i++) {
-                    let x = i % 8 +1; 
-                    let y = Math.floor(i / 8) + 1;
-                    //console.log(x, y)
-
-                    let id = String(y)+String(x);
-                    document.getElementById("board").innerHTML += '<div id = "' + id + '" onclick="aggiungiPedina('+ id +')"></div>';
-                    
-                }
-                board = document.getElementById("board")
-                document.getElementById("44").innerHTML += "<div class = 'white pedina'></div>"
-                document.getElementById("45").innerHTML += "<div class = 'black pedina'></div>"
-                document.getElementById("54").innerHTML += "<div class = 'black pedina'></div>"
-                document.getElementById("55").innerHTML += "<div class = 'white pedina'></div>"
-            }
-            const aggiungiPedina = (id) => {
-                if(document.getElementById(id).innerHTML == ""){
-                    if(contatore % 2 == 0){
-                    document.getElementById(id).innerHTML += "<div class = 'white pedina'></div>"
-                    }
-                    if(contatore % 2 == 1){
-                        document.getElementById(id).innerHTML += "<div class = 'black pedina'></div>"
-                    }
-                    contatore++
-                } 
-            }
-        </script>
-    </head>
-    <body onload="generaScacchiera();"> 
-        <div id="outer-board" style="width: 698px; height: 698px; background-color: rgb(59, 22, 2);">
-            <div id="board" style="width: 560px; height: 560px; position: relative; left: 70px; top: 70px;  "></div>
-        </div>
-    </body>
-</html>
-
-
-
-
-<html>
-    <head>
-        <style>
-            div{
-                border: 1px solid black;
-                width: 68px;
-                height: 68px;
-                background-color: darkgreen;
-                float: left;
-                padding: 0px;
-            }
-
-            #board{
-                border: 0px
-            }
-
-            .black{
-                background-color: black;
-            }
-
-            .white{
-                background-color: white;
-            }
-            .pedina{
-                width: 60px;
-                height: 60px;
-                border-radius: 30px;
-                position: relative;
-                left: 4px;
-                top: 4px;
-            }
-            .quadratino{
-                width: 10px;
-                height: 10px;
-                background-color: gray;
-                position: relative;
-                left: 29px;
-                top: 29px;
-            }
-        </style>
-        <script>
-            class Casella {
-                constructor(yx, y, x) {
-                    this.inside = null
-                    this.yx = yx
-                    this.y = y
-                    this.x = x
-                }
-            }
-            let caselle = []
-            let contatore = 0
-            let turno = 'white'
-            for(let i=0; i<=63; i++) {
-                let x = i % 8 +1; 
-                let y = Math.floor(i / 8) + 1;
-                //console.log(x, y)
-
-                let yx = String(y)+String(x);
-                    eval('var casella' + yx + '= new Casella('+ yx +', '+y+', '+x+');')
-                    eval('caselle.push(casella'+yx+')')
-                }
-            const generaScacchiera = () => {
-                for(let i=0; i<=63; i++) {
-                    let x = i % 8 +1; 
-                    let y = Math.floor(i / 8) + 1;
-                    //console.log(x, y)
-
-                    let yx = String(y)+String(x);
-                    document.getElementById("board").innerHTML += '<div id = "' + yx + '" onclick="aggiungiPedina('+ yx +',casella'+ yx +')"></div>';
-                    
-                }
-                board = document.getElementById("board")
-                document.getElementById("44").innerHTML += "<div class = 'white pedina'></div>"
-                casella44.inside = "white"
-                document.getElementById("45").innerHTML += "<div class = 'black pedina'></div>"
-                casella45.inside = "black"
-                document.getElementById("54").innerHTML += "<div class = 'black pedina'></div>"
-                casella54.inside = "black"
-                document.getElementById("55").innerHTML += "<div class = 'white pedina'></div>"
-                casella55.inside = "white"
-                cercaMossa()
-            }
-            const cambiaTurno = () => {
-                if(turno == 'white'){
-                    turno = 'black'
-                }
-                else{
-                    turno = 'white'
-                }
-            }
-            const cambioColore = () => {
-                if(turno == "white"){
-                    return "<div class = 'white pedina'></div>"
-                }
-                else{
-                    return "<div class = 'black pedina'></div>"
-                }
-            }
-            const cambioSotto = (casella) => {
-                let yx_sotto = casella.yx+10
-                let casella_sotto = eval('casella'+yx_sotto)
-                if(casella_sotto.inside != casella.inside && casella_sotto.inside != null){
-                    casella_sotto.inside = casella.inside
-                    //console.log(cambioColore())
-                    document.getElementById(yx_sotto).innerHTML = cambioColore()
-                    cambioSotto(casella_sotto)
-                }
-            }
-            const cambioSopra = (casella) => {
-                let yx_sopra = casella.yx-10
-                let casella_sopra = eval('casella'+yx_sopra)
-                if(casella_sopra.inside != casella.inside && casella_sopra.inside != null){
-                    casella_sopra.inside = casella.inside
-                    //console.log(cambioColore())
-                    document.getElementById(yx_sopra).innerHTML = cambioColore()
-                    cambioSopra(casella_sopra)
-                }
-            }
-            const cambioDestra = (casella) => {
-                let yx_destra = casella.yx+1
-                let casella_destra = eval('casella'+yx_destra)
-                if(casella_destra.inside != casella.inside && casella_destra.inside != null){
-                    casella_destra.inside = casella.inside
-                    //console.log(cambioColore())
-                    document.getElementById(yx_destra).innerHTML = cambioColore()
-                    cambioDestra(casella_destra)
-                }
-            }
-            const cambioSinistra = (casella) => {
-                let yx_sinistra = casella.yx-1
-                let casella_sinistra = eval('casella'+yx_sinistra)
-                if(casella_sinistra.inside != casella.inside && casella_sinistra.inside != null){
-                    casella_sinistra.inside = casella.inside
-                    //console.log(cambioColore())
-                    document.getElementById(yx_sinistra).innerHTML = cambioColore()
-                    cambioSinistra(casella_sinistra)
-                }
-            }
-            const cambioNE = (casella) => {
-                let yx_NE = casella.yx-9
-                let casella_NE = eval('casella'+yx_NE)
-                if(casella_NE.inside != casella.inside && casella_NE.inside != null){
-                    casella_NE.inside = casella.inside
-                    //console.log(cambioColore())
-                    document.getElementById(yx_NE).innerHTML = cambioColore()
-                    cambioNE(casella_NE)
-                }
-            }
-            const cambioNW = (casella) => {
-                let yx_NW = casella.yx-11
-                let casella_NW = eval('casella'+yx_NW)
-                if(casella_NW.inside != casella.inside && casella_NW.inside != null){
-                    casella_NW.inside = casella.inside
-                    //console.log(cambioColore())
-                    document.getElementById(yx_NW).innerHTML = cambioColore()
-                    cambioNW(casella_NW)
-                }
-            }
-            const cambioSE = (casella) => {
-                let yx_SE = casella.yx+11
-                let casella_SE = eval('casella'+yx_SE)
-                if(casella_SE.inside != casella.inside && casella_SE.inside != null){
-                    casella_SE.inside = casella.inside
-                    //console.log(cambioColore())
-                    document.getElementById(yx_SE).innerHTML = cambioColore()
-                    cambioSE(casella_SE)
-                }
-            }
-            const cambioSW = (casella) => {
-                let yx_SW = casella.yx+9
-                let casella_SW = eval('casella'+yx_SW)
-                if(casella_SW.inside != casella.inside && casella_SW.inside != null){
-                    casella_SW.inside = casella.inside
-                    //console.log(cambioColore())
-                    document.getElementById(yx_SW).innerHTML = cambioColore()
-                    cambioSW(casella_SW)
-                }
-            }
-            const aggiungiPedina = (yx, casella) => {
-                //console.log(document.getElementById(yx).innerHTML)
-                if(document.getElementById(yx).innerHTML != "" && casella.inside == null){
-                    if(turno == 'white'){
-                        document.getElementById(yx).innerHTML = "<div class = 'white pedina'></div>"
-                        casella.inside = "white"
-                        cambioSotto(casella)
-                        cambioSopra(casella)
-                        cambioDestra(casella)
-                        cambioSinistra(casella)
-                        cambioNE(casella)
-                        cambioNW(casella)
-                        cambioSE(casella)
-                        cambioSW(casella)
-                    }
-                    if(turno == 'black'){
-                        document.getElementById(yx).innerHTML = "<div class = 'black pedina'></div>"
-                        casella.inside = "black"
-                        cambioSotto(casella)
-                        cambioSopra(casella)
-                        cambioDestra(casella)
-                        cambioSinistra(casella)
-                        cambioNE(casella)
-                        cambioNW(casella)
-                        cambioSE(casella)
-                        cambioSW(casella)
-                    }
-                    for(let casella of caselle){
-                        let yx = casella.yx
-                        if(casella.inside == null){
-                            document.getElementById(yx).innerHTML = ""
-                        }
-                    }
-                }
-                cambiaTurno()
-                cercaMossa()
-            }
-            const controllaSopra = (casella, yx, giaChiamato = false) => {
-                let yx_sopra = yx-10
-                if (casella.y == 1){
-                    //console.log(0)
-                    return 0
-                }
-                let casella_sopra = eval('casella'+yx_sopra)
-                //console.log(casella_sopra)
-                if(giaChiamato){
-                    if (casella_sopra.inside == null){
-                        //console.log(casella_sopra)
-                        return casella_sopra
-                    }
-                    else if (casella_sopra.inside == casella.inside){
-                        return controllaSopra(casella_sopra, yx_sopra, true)
-                    }
-                }
-                else{
-                    //console.log(casella_sopra.inside, casella.inside)
-                    if ((casella_sopra.inside != null) && (casella_sopra.inside != casella.inside)){
-                        //console.log("sono qui")
-                        return controllaSopra(casella_sopra, yx_sopra, true)
-                    }
-                    else{
-                        return 0
-                    }
-                }
-            }
-            const controllaSotto = (casella, yx, giaChiamato = false) => {
-                let yx_sotto = yx+10
-                if (casella.y == 8){
-                    //console.log(0)
-                    return 0
-                }
-                let casella_sotto = eval('casella'+yx_sotto)
-                //console.log(casella_sotto)
-                if(giaChiamato){
-                    if (casella_sotto.inside == null){
-                        //console.log(casella_sotto)
-                        return casella_sotto
-                    }
-                    else if (casella_sotto.inside == casella.inside){
-                        return controllaSotto(casella_sotto, yx_sotto, true)
-                    }
-                }
-                else{
-                    //console.log(casella_sotto.inside, casella.inside)
-                    if ((casella_sotto.inside != null) && (casella_sotto.inside != casella.inside)){
-                        //console.log("sono qui")
-                        return controllaSotto(casella_sotto, yx_sotto, true)
-                    }
-                    else{
-                        return 0
-                    }
-                }
-            }
-            const controllaDestra = (casella, yx, giaChiamato = false) => {
-                let yx_destra = yx+1
-                if (casella.x == 8){
-                    //console.log(0)
-                    return 0
-                }
-                let casella_destra = eval('casella'+yx_destra)
-                //console.log(casella_destra)
-                if(giaChiamato){
-                    if (casella_destra.inside == null){
-                        //console.log(casella_destra)
-                        return casella_destra
-                    }
-                    else if (casella_destra.inside == casella.inside){
-                        return controllaDestra(casella_destra, yx_destra, true)
-                    }
-                }
-                else{
-                    //console.log(casella_destra.inside, casella.inside)
-                    if ((casella_destra.inside != null) && (casella_destra.inside != casella.inside)){
-                        //console.log("sono qui")
-                        return controllaDestra(casella_destra, yx_destra, true)
-                    }
-                    else{
-                        return 0
-                    }
-                }
-            }
-            const controllaSinistra = (casella, yx, giaChiamato = false) => {
-                let yx_sinistra = yx-1
-                if (casella.x == 1){
-                    //console.log(0)
-                    return 0
-                }
-                let casella_sinistra = eval('casella'+yx_sinistra)
-                //console.log(casella_sinistra)
-                if(giaChiamato){
-                    if (casella_sinistra.inside == null){
-                        //console.log(casella_sinistra)
-                        return casella_sinistra
-                    }
-                    else if (casella_sinistra.inside == casella.inside){
-                        return controllaSinistra(casella_sinistra, yx_sinistra, true)
-                    }
-                }
-                else{
-                    //console.log(casella_sinistra.inside, casella.inside)
-                    if ((casella_sinistra.inside != null) && (casella_sinistra.inside != casella.inside)){
-                        //console.log("sono qui")
-                        return controllaSinistra(casella_sinistra, yx_sinistra, true)
-                    }
-                    else{
-                        return 0
-                    }
-                }
-            }
-            const controllaNE = (casella, yx, giaChiamato = false) => {
-                let yx_NE = yx-9
-                if (casella.y == 1 || casella.x == 8){
-                    //console.log(0)
-                    return 0
-                }
-                let casella_NE = eval('casella'+yx_NE)
-                //console.log(casella_NE)
-                if(giaChiamato){
-                    if (casella_NE.inside == null){
-                        //console.log(casella_NE)
-                        return casella_NE
-                    }
-                    else if (casella_NE.inside == casella.inside){
-                        return controllaNE(casella_NE, yx_NE, true)
-                    }
-                }
-                else{
-                    //console.log(casella_NE.inside, casella.inside)
-                    if ((casella_NE.inside != null) && (casella_NE.inside != casella.inside)){
-                        //console.log("sono qui")
-                        return controllaNE(casella_NE, yx_NE, true)
-                    }
-                    else{
-                        return 0
-                    }
-                }
-            }
-            const controllaNW = (casella, yx, giaChiamato = false) => {
-                let yx_NW = yx-11
-                if (casella.y == 1 || casella.x == 1){
-                    //console.log(0)
-                    return 0
-                }
-                let casella_NW = eval('casella'+yx_NW)
-                //console.log(casella_NW)
-                if(giaChiamato){
-                    if (casella_NW.inside == null){
-                        //console.log(casella_NW)
-                        return casella_NW
-                    }
-                    else if (casella_NW.inside == casella.inside){
-                        return controllaNW(casella_NW, yx_NW, true)
-                    }
-                }
-                else{
-                    //console.log(casella_NW.inside, casella.inside)
-                    if ((casella_NW.inside != null) && (casella_NW.inside != casella.inside)){
-                        //console.log("sono qui")
-                        return controllaNW(casella_NW, yx_NW, true)
-                    }
-                    else{
-                        return 0
-                    }
-                }
-            }
-            const controllaSW = (casella, yx, giaChiamato = false) => {
-                let yx_SW = yx+9
-                if (casella.y == 8 || casella.x == 1){
-                    //console.log(0)
-                    return 0
-                }
-                let casella_SW = eval('casella'+yx_SW)
-                //console.log(casella_SW)
-                if(giaChiamato){
-                    if (casella_SW.inside == null){
-                        //console.log(casella_SW)
-                        return casella_SW
-                    }
-                    else if (casella_SW.inside == casella.inside){
-                        return controllaSW(casella_SW, yx_SW, true)
-                    }
-                }
-                else{
-                    //console.log(casella_SW.inside, casella.inside)
-                    if ((casella_SW.inside != null) && (casella_SW.inside != casella.inside)){
-                        //console.log("sono qui")
-                        return controllaSW(casella_SW, yx_SW, true)
-                    }
-                    else{
-                        return 0
-                    }
-                }
-            }
-            const controllaSE = (casella, yx, giaChiamato = false) => {
-                let yx_SE = yx+11
-                if (casella.y == 8 || casella.x == 8){
-                    //console.log(0)
-                    return 0
-                }
-                let casella_SE = eval('casella'+yx_SE)
-                //console.log(casella_SE)
-                if(giaChiamato){
-                    if (casella_SE.inside == null){
-                        //console.log(casella_SE)
-                        return casella_SE
-                    }
-                    else if (casella_SE.inside == casella.inside){
-                        return controllaSE(casella_SE, yx_SE, true)
-                    }
-                }
-                else{
-                    //console.log(casella_SE.inside, casella.inside)
-                    if ((casella_SE.inside != null) && (casella_SE.inside != casella.inside)){
-                        //console.log("sono qui")
-                        return controllaSE(casella_SE, yx_SE, true)
-                    }
-                    else{
-                        return 0
-                    }
-                }
-            }
-            const cercaMossa = () => {
-                for(let casella of caselle){
-                    if(casella.inside != turno){
-                        continue
-                    }
-                    //console.log(casella)
-                    let casella_sopra = controllaSopra(casella, casella.yx)
-                    let casella_sotto = controllaSotto(casella, casella.yx)
-                    let casella_destra = controllaDestra(casella, casella.yx)
-                    let casella_sinistra = controllaSinistra(casella, casella.yx)
-                    let casella_NE = controllaNE(casella, casella.yx)
-                    let casella_NW = controllaNW(casella, casella.yx)
-                    let casella_SE = controllaSE(casella, casella.yx)
-                    let casella_SW = controllaSW(casella, casella.yx)
-
-                    if(casella_sopra != 0){
-                        let yx = casella_sopra.yx
-                        document.getElementById(yx).innerHTML = '<div class = quadratino></div>'
-                    }
-                    if(casella_sotto != 0){
-                        let yx = casella_sotto.yx
-                        document.getElementById(yx).innerHTML = '<div class = quadratino></div>'
-                    }
-                    if(casella_destra != 0){
-                        let yx = casella_destra.yx
-                        document.getElementById(yx).innerHTML = '<div class = quadratino></div>'
-                    }
-                    if(casella_sinistra != 0){
-                        let yx = casella_sinistra.yx
-                        document.getElementById(yx).innerHTML = '<div class = quadratino></div>'
-                    }
-                    if(casella_NE != 0){
-                        let yx = casella_NE.yx
-                        document.getElementById(yx).innerHTML = '<div class = quadratino></div>'
-                    }
-                    if(casella_NW != 0){
-                        let yx = casella_NW.yx
-                        document.getElementById(yx).innerHTML = '<div class = quadratino></div>'
-                    }
-                    if(casella_SE != 0){
-                        let yx = casella_SE.yx
-                        document.getElementById(yx).innerHTML = '<div class = quadratino></div>'
-                    }
-                    if(casella_SW != 0){
-                        let yx = casella_SW.yx
-                        document.getElementById(yx).innerHTML = '<div class = quadratino></div>'
-                    }
-                }
-            }
-        </script>
-    </head>
-    <body onload="generaScacchiera();"> 
-        <div id="outer-board" style="width: 698px; height: 698px; background-color: rgb(59, 22, 2);">
-            <div id="board" style="width: 560px; height: 560px; position: relative; left: 70px; top: 70px;  "></div>
-        </div>
-    </body>
-</html>
-
-<html>
-    <head>
-        <style>
-            div{
-                border: 1px solid black;
-                width: 68px;
-                height: 68px;
-                background-color: darkgreen;
-                float: left;
-                padding: 0px;
-            }
-
-            #board{
-                border: 0px
-            }
-
-            .black{
-                background-color: black;
-            }
-
-            .white{
-                background-color: white;
-            }
-            .pedina{
-                width: 60px;
-                height: 60px;
-                border-radius: 30px;
-                position: relative;
-                left: 4px;
-                top: 4px;
-            }
-            .quadratino{
-                width: 10px;
-                height: 10px;
-                background-color: gray;
-                position: relative;
-                left: 29px;
-                top: 29px;
-            }
-        </style>
-        <script>
-            class Casella {
-                constructor(yx, y, x) {
-                    this.inside = null
-                    this.yx = yx
-                    this.y = y
-                    this.x = x
-                }
-            }
-            let caselle = []
-            let turno = 'white'
-            for(let i=0; i<=63; i++) {
-                let x = i % 8 +1; 
-                let y = Math.floor(i / 8) + 1;
-                //console.log(x, y)
-
-                let yx = String(y)+String(x);
-                    eval('var casella' + yx + '= new Casella('+ yx +', '+y+', '+x+');')
-                    eval('caselle.push(casella'+yx+')')
-                }
-            const generaScacchiera = () => {
-                for(let i=0; i<=63; i++) {
-                    let x = i % 8 +1; 
-                    let y = Math.floor(i / 8) + 1;
-                    //console.log(x, y)
-
-                    let yx = String(y)+String(x);
-                    document.getElementById("board").innerHTML += '<div id = "' + yx + '" onclick="aggiungiPedina('+ yx +',casella'+ yx +')"></div>';
-                    
-                }
-                board = document.getElementById("board")
-                document.getElementById("44").innerHTML += "<div class = 'white pedina'></div>"
-                casella44.inside = "white"
-                document.getElementById("45").innerHTML += "<div class = 'black pedina'></div>"
-                casella45.inside = "black"
-                document.getElementById("54").innerHTML += "<div class = 'black pedina'></div>"
-                casella54.inside = "black"
-                document.getElementById("55").innerHTML += "<div class = 'white pedina'></div>"
-                casella55.inside = "white"
-                cercaMossa()
-            }
-            const cambiaTurno = () => {
-                if(turno == 'white'){
-                    turno = 'black'
-                }
-                else{
-                    turno = 'white'
-                }
-            }
-            const cambioColore = () => {
-                if(turno == "white"){
-                    return "<div class = 'white pedina'></div>"
-                }
-                else{
-                    return "<div class = 'black pedina'></div>"
-                }
-            }
-            const cambioSotto = (casella) => {
-                let yx_sotto = casella.yx+10
-                let casella_sotto = eval('casella'+yx_sotto)
-                if(casella_sotto.inside != casella.inside && casella_sotto.inside != null){
-                    casella_sotto.inside = casella.inside
-                    //console.log(cambioColore())
-                    document.getElementById(yx_sotto).innerHTML = cambioColore()
-                    cambioSotto(casella_sotto)
-                }
-            }
-            const cambioSopra = (casella) => {
-                let yx_sopra = casella.yx-10
-                let casella_sopra = eval('casella'+yx_sopra)
-                if(casella_sopra.inside != casella.inside && casella_sopra.inside != null){
-                    casella_sopra.inside = casella.inside
-                    //console.log(cambioColore())
-                    document.getElementById(yx_sopra).innerHTML = cambioColore()
-                    cambioSopra(casella_sopra)
-                }
-            }
-            const cambioDestra = (casella) => {
-                let yx_destra = casella.yx+1
-                let casella_destra = eval('casella'+yx_destra)
-                if(casella_destra.inside != casella.inside && casella_destra.inside != null){
-                    casella_destra.inside = casella.inside
-                    //console.log(cambioColore())
-                    document.getElementById(yx_destra).innerHTML = cambioColore()
-                    cambioDestra(casella_destra)
-                }
-            }
-            const cambioSinistra = (casella) => {
-                let yx_sinistra = casella.yx-1
-                let casella_sinistra = eval('casella'+yx_sinistra)
-                if(casella_sinistra.inside != casella.inside && casella_sinistra.inside != null){
-                    casella_sinistra.inside = casella.inside
-                    //console.log(cambioColore())
-                    document.getElementById(yx_sinistra).innerHTML = cambioColore()
-                    cambioSinistra(casella_sinistra)
-                }
-            }
-            const cambioNE = (casella) => {
-                let yx_NE = casella.yx-9
-                let casella_NE = eval('casella'+yx_NE)
-                if(casella_NE.inside != casella.inside && casella_NE.inside != null){
-                    casella_NE.inside = casella.inside
-                    //console.log(cambioColore())
-                    document.getElementById(yx_NE).innerHTML = cambioColore()
-                    cambioNE(casella_NE)
-                }
-            }
-            const cambioNW = (casella) => {
-                let yx_NW = casella.yx-11
-                let casella_NW = eval('casella'+yx_NW)
-                if(casella_NW.inside != casella.inside && casella_NW.inside != null){
-                    casella_NW.inside = casella.inside
-                    //console.log(cambioColore())
-                    document.getElementById(yx_NW).innerHTML = cambioColore()
-                    cambioNW(casella_NW)
-                }
-            }
-            const cambioSE = (casella) => {
-                let yx_SE = casella.yx+11
-                let casella_SE = eval('casella'+yx_SE)
-                if(casella_SE.inside != casella.inside && casella_SE.inside != null){
-                    casella_SE.inside = casella.inside
-                    //console.log(cambioColore())
-                    document.getElementById(yx_SE).innerHTML = cambioColore()
-                    cambioSE(casella_SE)
-                }
-            }
-            const cambioSW = (casella) => {
-                let yx_SW = casella.yx+9
-                let casella_SW = eval('casella'+yx_SW)
-                if(casella_SW.inside != casella.inside && casella_SW.inside != null){
-                    casella_SW.inside = casella.inside
-                    //console.log(cambioColore())
-                    document.getElementById(yx_SW).innerHTML = cambioColore()
-                    cambioSW(casella_SW)
-                }
-            }
-            const aggiungiPedina = (yx, casella) => {
-                //console.log(document.getElementById(yx).innerHTML)
-                if(document.getElementById(yx).innerHTML != "" && casella.inside == null){
-                    if(turno == 'white'){
-                        document.getElementById(yx).innerHTML = "<div class = 'white pedina'></div>"
-                        casella.inside = "white"
-                        if(casella.x != 8){
-                            cambioDestra(casella)
-                        }
-                        if(casella.x != 1){
-                            cambioSinistra(casella)
-                        }
-                        if(casella.x != 8 && casella.y != 1){
-                            cambioNE(casella)
-                        }
-                        if(casella.x != 8 && casella.y != 8){
-                            cambioSE(casella)
-                        }
-                        if(casella.y != 1){
-                            cambioSopra(casella)
-                        }
-                        if(casella.y != 8){
-                            cambioSotto(casella)
-                        }
-                        if(casella.x != 1 && casella.y != 1){
-                            cambioNW(casella)
-                        }
-                        if(casella.x != 1 && casella.y != 8){
-                            cambioSW(casella)
-                        }  
-                    }
-                    if(turno == 'black'){
-                        document.getElementById(yx).innerHTML = "<div class = 'black pedina'></div>"
-                        casella.inside = "black"
-                        if(casella.x != 8){
-                            cambioDestra(casella)
-                        }
-                        if(casella.x != 1){
-                            cambioSinistra(casella)
-                        }
-                        if(casella.x != 8 && casella.y != 1){
-                            cambioNE(casella)
-                        }
-                        if(casella.x != 8 && casella.y != 8){
-                            cambioSE(casella)
-                        }
-                        if(casella.y != 1){
-                            cambioSopra(casella)
-                        }
-                        if(casella.y != 8){
-                            cambioSotto(casella)
-                        }
-                        if(casella.x != 1 && casella.y != 1){
-                            cambioNW(casella)
-                        }
-                        if(casella.x != 1 && casella.y != 8){
-                            cambioSW(casella)
-                        }  
-                    }
-                    for(let casella of caselle){
-                        let yx = casella.yx
-                        if(casella.inside == null){
-                            document.getElementById(yx).innerHTML = ""
-                        }
-                    }
-                    cambiaTurno()
-                }
-                cercaMossa()
-            }
-            const controllaSopra = (casella, yx, giaChiamato = false) => {
-                let yx_sopra = yx-10
-                if (casella.y == 1){
-                    //console.log(0)
-                    return 0
-                }
-                let casella_sopra = eval('casella'+yx_sopra)
-                //console.log(casella_sopra)
-                if(giaChiamato){
-                    if (casella_sopra.inside == null){
-                        //console.log(casella_sopra)
-                        return casella_sopra
-                    }
-                    else if (casella_sopra.inside == casella.inside){
-                        return controllaSopra(casella_sopra, yx_sopra, true)
-                    }
-                }
-                else{
-                    //console.log(casella_sopra.inside, casella.inside)
-                    if ((casella_sopra.inside != null) && (casella_sopra.inside != casella.inside)){
-                        //console.log("sono qui")
-                        return controllaSopra(casella_sopra, yx_sopra, true)
-                    }
-                    else{
-                        return 0
-                    }
-                }
-            }
-            const controllaSotto = (casella, yx, giaChiamato = false) => {
-                let yx_sotto = yx+10
-                if (casella.y == 8){
-                    //console.log(0)
-                    return 0
-                }
-                let casella_sotto = eval('casella'+yx_sotto)
-                //console.log(casella_sotto)
-                if(giaChiamato){
-                    if (casella_sotto.inside == null){
-                        //console.log(casella_sotto)
-                        return casella_sotto
-                    }
-                    else if (casella_sotto.inside == casella.inside){
-                        return controllaSotto(casella_sotto, yx_sotto, true)
-                    }
-                }
-                else{
-                    //console.log(casella_sotto.inside, casella.inside)
-                    if ((casella_sotto.inside != null) && (casella_sotto.inside != casella.inside)){
-                        //console.log("sono qui")
-                        return controllaSotto(casella_sotto, yx_sotto, true)
-                    }
-                    else{
-                        return 0
-                    }
-                }
-            }
-            const controllaDestra = (casella, yx, giaChiamato = false) => {
-                let yx_destra = yx+1
-                if (casella.x == 8){
-                    //console.log(0)
-                    return 0
-                }
-                let casella_destra = eval('casella'+yx_destra)
-                //console.log(casella_destra)
-                if(giaChiamato){
-                    if (casella_destra.inside == null){
-                        //console.log(casella_destra)
-                        return casella_destra
-                    }
-                    else if (casella_destra.inside == casella.inside){
-                        return controllaDestra(casella_destra, yx_destra, true)
-                    }
-                }
-                else{
-                    //console.log(casella_destra.inside, casella.inside)
-                    if ((casella_destra.inside != null) && (casella_destra.inside != casella.inside)){
-                        //console.log("sono qui")
-                        return controllaDestra(casella_destra, yx_destra, true)
-                    }
-                    else{
-                        return 0
-                    }
-                }
-            }
-            const controllaSinistra = (casella, yx, giaChiamato = false) => {
-                let yx_sinistra = yx-1
-                if (casella.x == 1){
-                    //console.log(0)
-                    return 0
-                }
-                let casella_sinistra = eval('casella'+yx_sinistra)
-                //console.log(casella_sinistra)
-                if(giaChiamato){
-                    if (casella_sinistra.inside == null){
-                        //console.log(casella_sinistra)
-                        return casella_sinistra
-                    }
-                    else if (casella_sinistra.inside == casella.inside){
-                        return controllaSinistra(casella_sinistra, yx_sinistra, true)
-                    }
-                }
-                else{
-                    //console.log(casella_sinistra.inside, casella.inside)
-                    if ((casella_sinistra.inside != null) && (casella_sinistra.inside != casella.inside)){
-                        //console.log("sono qui")
-                        return controllaSinistra(casella_sinistra, yx_sinistra, true)
-                    }
-                    else{
-                        return 0
-                    }
-                }
-            }
-            const controllaNE = (casella, yx, giaChiamato = false) => {
-                let yx_NE = yx-9
-                if (casella.y == 1 || casella.x == 8){
-                    //console.log(0)
-                    return 0
-                }
-                let casella_NE = eval('casella'+yx_NE)
-                //console.log(casella_NE)
-                if(giaChiamato){
-                    if (casella_NE.inside == null){
-                        //console.log(casella_NE)
-                        return casella_NE
-                    }
-                    else if (casella_NE.inside == casella.inside){
-                        return controllaNE(casella_NE, yx_NE, true)
-                    }
-                }
-                else{
-                    //console.log(casella_NE.inside, casella.inside)
-                    if ((casella_NE.inside != null) && (casella_NE.inside != casella.inside)){
-                        //console.log("sono qui")
-                        return controllaNE(casella_NE, yx_NE, true)
-                    }
-                    else{
-                        return 0
-                    }
-                }
-            }
-            const controllaNW = (casella, yx, giaChiamato = false) => {
-                let yx_NW = yx-11
-                if (casella.y == 1 || casella.x == 1){
-                    //console.log(0)
-                    return 0
-                }
-                let casella_NW = eval('casella'+yx_NW)
-                //console.log(casella_NW)
-                if(giaChiamato){
-                    if (casella_NW.inside == null){
-                        //console.log(casella_NW)
-                        return casella_NW
-                    }
-                    else if (casella_NW.inside == casella.inside){
-                        return controllaNW(casella_NW, yx_NW, true)
-                    }
-                }
-                else{
-                    //console.log(casella_NW.inside, casella.inside)
-                    if ((casella_NW.inside != null) && (casella_NW.inside != casella.inside)){
-                        //console.log("sono qui")
-                        return controllaNW(casella_NW, yx_NW, true)
-                    }
-                    else{
-                        return 0
-                    }
-                }
-            }
-            const controllaSW = (casella, yx, giaChiamato = false) => {
-                let yx_SW = yx+9
-                if (casella.y == 8 || casella.x == 1){
-                    //console.log(0)
-                    return 0
-                }
-                let casella_SW = eval('casella'+yx_SW)
-                //console.log(casella_SW)
-                if(giaChiamato){
-                    if (casella_SW.inside == null){
-                        //console.log(casella_SW)
-                        return casella_SW
-                    }
-                    else if (casella_SW.inside == casella.inside){
-                        return controllaSW(casella_SW, yx_SW, true)
-                    }
-                }
-                else{
-                    //console.log(casella_SW.inside, casella.inside)
-                    if ((casella_SW.inside != null) && (casella_SW.inside != casella.inside)){
-                        //console.log("sono qui")
-                        return controllaSW(casella_SW, yx_SW, true)
-                    }
-                    else{
-                        return 0
-                    }
-                }
-            }
-            const controllaSE = (casella, yx, giaChiamato = false) => {
-                let yx_SE = yx+11
-                if (casella.y == 8 || casella.x == 8){
-                    //console.log(0)
-                    return 0
-                }
-                let casella_SE = eval('casella'+yx_SE)
-                //console.log(casella_SE)
-                if(giaChiamato){
-                    if (casella_SE.inside == null){
-                        //console.log(casella_SE)
-                        return casella_SE
-                    }
-                    else if (casella_SE.inside == casella.inside){
-                        return controllaSE(casella_SE, yx_SE, true)
-                    }
-                }
-                else{
-                    //console.log(casella_SE.inside, casella.inside)
-                    if ((casella_SE.inside != null) && (casella_SE.inside != casella.inside)){
-                        //console.log("sono qui")
-                        return controllaSE(casella_SE, yx_SE, true)
-                    }
-                    else{
-                        return 0
-                    }
-                }
-            }
-            const cercaMossa = () => {
-                for(let casella of caselle){
-                    if(casella.inside != turno){
-                        continue
-                    }
-                    //console.log(casella)
-                    let casella_sopra = controllaSopra(casella, casella.yx)
-                    let casella_sotto = controllaSotto(casella, casella.yx)
-                    let casella_destra = controllaDestra(casella, casella.yx)
-                    let casella_sinistra = controllaSinistra(casella, casella.yx)
-                    let casella_NE = controllaNE(casella, casella.yx)
-                    let casella_NW = controllaNW(casella, casella.yx)
-                    let casella_SE = controllaSE(casella, casella.yx)
-                    let casella_SW = controllaSW(casella, casella.yx)
-
-                    if(casella_sopra != 0){
-                        let yx = casella_sopra.yx
-                        document.getElementById(yx).innerHTML = '<div class = quadratino></div>'
-                    }
-                    if(casella_sotto != 0){
-                        let yx = casella_sotto.yx
-                        document.getElementById(yx).innerHTML = '<div class = quadratino></div>'
-                    }
-                    if(casella_destra != 0){
-                        let yx = casella_destra.yx
-                        document.getElementById(yx).innerHTML = '<div class = quadratino></div>'
-                    }
-                    if(casella_sinistra != 0){
-                        let yx = casella_sinistra.yx
-                        document.getElementById(yx).innerHTML = '<div class = quadratino></div>'
-                    }
-                    if(casella_NE != 0){
-                        let yx = casella_NE.yx
-                        document.getElementById(yx).innerHTML = '<div class = quadratino></div>'
-                    }
-                    if(casella_NW != 0){
-                        let yx = casella_NW.yx
-                        document.getElementById(yx).innerHTML = '<div class = quadratino></div>'
-                    }
-                    if(casella_SE != 0){
-                        let yx = casella_SE.yx
-                        document.getElementById(yx).innerHTML = '<div class = quadratino></div>'
-                    }
-                    if(casella_SW != 0){
-                        let yx = casella_SW.yx
-                        document.getElementById(yx).innerHTML = '<div class = quadratino></div>'
-                    }
-                }
-            }
-        </script>
-    </head>
-    <body onload="generaScacchiera();"> 
-        <div id="outer-board" style="width: 698px; height: 698px; background-color: rgb(59, 22, 2);">
-            <div id="board" style="width: 560px; height: 560px; position: relative; left: 70px; top: 70px;  "></div>
-        </div>
-    </body>
-</html>
 
 <html>
     <head>
@@ -1197,32 +99,161 @@
                     return "<div class = 'black pedina'></div>"
                 }
             }
-            let caselle_cambiate = []
-            const cambioSotto = (casella, casella_iniziale) => {
+            let controllo = false
+            const controlloCambioSotto = (casella, casella_iniziale) => {
+                let yx_sotto = casella.yx+10
+                if(casella.y == 8){
+                    controllo = false
+                    return false
+                }
+                let casella_sotto = eval("casella" + yx_sotto) 
+                if(casella_sotto.inside == casella_iniziale.inside){
+                    controllo = true
+                }
+                else if(casella_sotto.inside != casella_iniziale.inside && casella_sotto.inside != null){
+                    controlloCambioSotto(casella_sotto, casella_iniziale)
+                }
+                else{
+                    controllo = false
+                }
+            }
+            const controlloCambioSopra = (casella, casella_iniziale) => {
+                let yx_sopra = casella.yx-10
+                if(casella.y == 1){
+                    controllo = false
+                    return false
+                }
+                let casella_sopra = eval("casella" + yx_sopra) 
+                if(casella_sopra.inside == casella_iniziale.inside){
+                    controllo = true
+                }
+                else if(casella_sopra.inside != casella_iniziale.inside && casella_sopra.inside != null){
+                    controlloCambioSopra(casella_sopra, casella_iniziale)
+                }
+                else{
+                    controllo = false
+                }
+            }
+            const controlloCambioDestra = (casella, casella_iniziale) => {
+                let yx_destra = casella.yx+1
+                if(casella.x == 8){
+                    controllo = false
+                    return false
+                }
+                let casella_destra = eval("casella" + yx_destra) 
+                if(casella_destra.inside == casella_iniziale.inside){
+                    controllo = true
+                }
+                else if(casella_destra.inside != casella_iniziale.inside && casella_destra.inside != null){
+                    controlloCambioDestra(casella_destra, casella_iniziale)
+                }
+                else{
+                    controllo = false
+                }
+            }
+            const controlloCambioSinistra = (casella, casella_iniziale) => {
+                let yx_sinistra = casella.yx-1
+                if(casella.x == 1){
+                    controllo = false
+                    return false
+                }
+                let casella_sinistra = eval("casella" + yx_sinistra) 
+                if(casella_sinistra.inside == casella_iniziale.inside){
+                    controllo = true
+                }
+                else if(casella_sinistra.inside != casella_iniziale.inside && casella_sinistra.inside != null){
+                    controlloCambioSinistra(casella_sinistra, casella_iniziale)
+                }
+                else{
+                    controllo = false
+                }
+            }
+            const controlloCambioNE = (casella, casella_iniziale) => {
+                let yx_NE = casella.yx-9
+                if(casella.y == 1 || casella.x == 8){
+                    controllo = false
+                    return false
+                }
+                let casella_NE = eval("casella" + yx_NE) 
+                if(casella_NE.inside == casella_iniziale.inside){
+                    controllo = true
+                }
+                else if(casella_NE.inside != casella_iniziale.inside && casella_NE.inside != null){
+                    controlloCambioNE(casella_NE, casella_iniziale)
+                }
+                else{
+                    controllo = false
+                }
+            }
+            const controlloCambioNW = (casella, casella_iniziale) => {
+                let yx_NW = casella.yx-11
+                if(casella.y == 1 || casella.x == 1){
+                    controllo = false
+                    return false
+                }
+                let casella_NW = eval("casella" + yx_NW) 
+                if(casella_NW.inside == casella_iniziale.inside){
+                    controllo = true
+                }
+                else if(casella_NW.inside != casella_iniziale.inside && casella_NW.inside != null){
+                    controlloCambioNW(casella_NW, casella_iniziale)
+                }
+                else{
+                    controllo = false
+                }
+            }
+            const controlloCambioSE = (casella, casella_iniziale) => {
+                let yx_SE = casella.yx+11
+                if(casella.y == 8 || casella.x == 8){
+                    controllo = false
+                    return false
+                }
+                let casella_SE = eval("casella" + yx_SE) 
+                if(casella_SE.inside == casella_iniziale.inside){
+                    controllo = true
+                }
+                else if(casella_SE.inside != casella_iniziale.inside && casella_SE.inside != null){
+                    controlloCambioSE(casella_SE, casella_iniziale)
+                }
+                else{
+                    controllo = false
+                }
+            }
+            const controlloCambioSW = (casella, casella_iniziale) => {
+                let yx_SW = casella.yx+9
+                if(casella.y == 8 || casella.x == 1){
+                    controllo = false
+                    return false
+                }
+                let casella_SW = eval("casella" + yx_SW) 
+                if(casella_SW.inside == casella_iniziale.inside){
+                    controllo = true
+                }
+                else if(casella_SW.inside != casella_iniziale.inside && casella_SW.inside != null){
+                    controlloCambioSW(casella_SW, casella_iniziale)
+                }
+                else{
+                    controllo = false
+                }
+            }
+            const cambioSotto = (casella) => {
                 if(casella.y != 8){
                     let yx_sotto = casella.yx+10
-                    let casella_sotto = eval('casella'+yx_sotto)
+                    let casella_sotto = eval('casella'+ yx_sotto)
                     if(casella_sotto.inside != casella.inside && casella_sotto.inside != null){
                         casella_sotto.inside = casella.inside
-                        caselle_cambiate.push(casella_sotto)
                         //console.log(cambioColore())
                         document.getElementById(yx_sotto).innerHTML = cambioColore()
-                        cambioSotto(casella_sotto, casella_iniziale)
+                        cambioSotto(casella_sotto)
                     }
                 }
-                if(caselle_cambiate[-1].inside != casella_iniziale.inside){
-                    for(casella of caselle_cambiate){
-                        //if(casella_sotto.inside = "black")
-                    }
-                }
+
+                
             }
             const cambioSopra = (casella) => {
                 if(casella.y != 1){
                     let yx_sopra = casella.yx-10
                     let casella_sopra = eval('casella'+yx_sopra)
-                    console.log("sono qui")
-                    console.log(casella)
-                    console.log(casella_sopra)
                     if(casella_sopra.inside != casella.inside && casella_sopra.inside != null){
                         casella_sopra.inside = casella.inside
                         //console.log(cambioColore())
@@ -1310,56 +341,104 @@
                         document.getElementById(yx).innerHTML = "<div class = 'white pedina'></div>"
                         casella.inside = "white"
                         if(casella.x != 8){
-                            cambioDestra(casella)
+                            controlloCambioDestra(casella,casella)
+                            if(controllo == true){
+                                cambioDestra(casella)
+                            }
                         }
                         if(casella.x != 1){
-                            cambioSinistra(casella)
+                            controlloCambioSinistra(casella,casella)
+                            if(controllo == true){
+                                cambioSinistra(casella)
+                            }
                         }
                         if(casella.x != 8 && casella.y != 1){
-                            cambioNE(casella)
+                            controlloCambioNE(casella,casella)
+                            if(controllo == true){
+                                cambioNE(casella)
+                            }
                         }
                         if(casella.x != 8 && casella.y != 8){
-                            cambioSE(casella)
+                            controlloCambioSE(casella,casella)
+                            if(controllo == true){
+                                cambioSE(casella)
+                            }
                         }
                         if(casella.y != 1){
-                            cambioSopra(casella)
+                            controlloCambioSopra(casella,casella)
+                            if(controllo == true){
+                                cambioSopra(casella)
+                            }
                         }
                         if(casella.y != 8){
-                            cambioSotto(casella, casella)
+                            controlloCambioSotto(casella,casella)
+                            if(controllo == true){
+                                cambioSotto(casella)
+                            }
                         }
                         if(casella.x != 1 && casella.y != 1){
-                            cambioNW(casella)
+                            controlloCambioNW(casella,casella)
+                            if(controllo == true){
+                                cambioNW(casella)
+                            }
                         }
                         if(casella.x != 1 && casella.y != 8){
-                            cambioSW(casella)
+                            controlloCambioSW(casella,casella)
+                            if(controllo == true){
+                                cambioSW(casella)
+                            }
                         }  
                     }
                     if(turno == 'black'){
                         document.getElementById(yx).innerHTML = "<div class = 'black pedina'></div>"
                         casella.inside = "black"
                         if(casella.x != 8){
-                            cambioDestra(casella)
+                            controlloCambioDestra(casella,casella)
+                            if(controllo == true){
+                                cambioDestra(casella)
+                            }
                         }
                         if(casella.x != 1){
-                            cambioSinistra(casella)
+                            controlloCambioSinistra(casella,casella)
+                            if(controllo == true){
+                                cambioSinistra(casella)
+                            }
                         }
                         if(casella.x != 8 && casella.y != 1){
-                            cambioNE(casella)
+                            controlloCambioNE(casella,casella)
+                            if(controllo == true){
+                                cambioNE(casella)
+                            }
                         }
                         if(casella.x != 8 && casella.y != 8){
-                            cambioSE(casella)
+                            controlloCambioSE(casella,casella)
+                            if(controllo == true){
+                                cambioSE(casella)
+                            }
                         }
                         if(casella.y != 1){
-                            cambioSopra(casella)
+                            controlloCambioSopra(casella,casella)
+                            if(controllo == true){
+                                cambioSopra(casella)
+                            }
                         }
                         if(casella.y != 8){
-                            cambioSotto(casella)
+                            controlloCambioSotto(casella,casella)
+                            if(controllo == true){
+                                cambioSotto(casella)
+                            }
                         }
                         if(casella.x != 1 && casella.y != 1){
-                            cambioNW(casella)
+                            controlloCambioNW(casella,casella)
+                            if(controllo == true){
+                                cambioNW(casella)
+                            }
                         }
                         if(casella.x != 1 && casella.y != 8){
-                            cambioSW(casella)
+                            controlloCambioSW(casella,casella)
+                            if(controllo == true){
+                                cambioSW(casella)
+                            }
                         }  
                     }
                     for(let casella of caselle){
@@ -1620,7 +699,40 @@
                     }
                 }
             }
+            let fine = false
+            const controllaFine = () => {
+                for(let casella of caselle){
+                    if(casella.inside == null){
+                        fine = false
+                        return false
+                    }
+                }
+                fine = true
+            }
+            const cercaVincitore = () => {
+                let black = 0
+                let white = 0
+                for(let casella of caselle){
+                    if(casella.inside == "white"){
+                        white += 1
+                    }
+                    else{
+                        black += 1
+                    }
+                }
+                if(black > white){
+                    alert("ha vinto il nero con " + black + " pedine")
+                }
+                else{
+                    alert("ha vinto il bianco con " + white + " pedine")
+                }
+            }
             const cercaMossa = () => {
+                /*controllaFine()
+                if(fine == true){
+                    cercaVincitore()
+                }*/
+                let caselle_riempibili = []
                 for(let casella of caselle){
                     // console.log("sono qui")
                     // console.log(casella)
@@ -1638,40 +750,56 @@
                     let casella_SE = controllaSE(casella, casella.yx)
                     let casella_SW = controllaSW(casella, casella.yx)
 
+                    
+
                     if(casella_sopra != 0){
+                        caselle_riempibili.push(casella_sopra)
                         let yx = casella_sopra.yx
                         document.getElementById(yx).innerHTML = '<div class = quadratino></div>'
                     }
 
                     if(casella_sotto != 0){
+                        caselle_riempibili.push(casella_sotto)
                         let yx = casella_sotto.yx
                         document.getElementById(yx).innerHTML = '<div class = quadratino></div>'
                     }
                     if(casella_destra != 0){
+                        caselle_riempibili.push(casella_destra)
                         let yx = casella_destra.yx
                         document.getElementById(yx).innerHTML = '<div class = quadratino></div>'
                     }
                     if(casella_sinistra != 0){
+                        caselle_riempibili.push(casella_sinistra)
                         let yx = casella_sinistra.yx
                         document.getElementById(yx).innerHTML = '<div class = quadratino></div>'
                     }
                     if(casella_NE != 0){
+                        caselle_riempibili.push(casella_NE)
                         let yx = casella_NE.yx
                         document.getElementById(yx).innerHTML = '<div class = quadratino></div>'
                     }
                     if(casella_NW != 0){
+                        caselle_riempibili.push(casella_NW)
                         let yx = casella_NW.yx
                         document.getElementById(yx).innerHTML = '<div class = quadratino></div>'
                     }
                     if(casella_SE != 0){
+                        caselle_riempibili.push(casella_SE)
                         let yx = casella_SE.yx
                         document.getElementById(yx).innerHTML = '<div class = quadratino></div>'
                     }
                     if(casella_SW != 0){
+                        caselle_riempibili.push(casella_SW)
                         let yx = casella_SW.yx
                         document.getElementById(yx).innerHTML = '<div class = quadratino></div>'
                     }
                 }
+                console.log(caselle_riempibili)
+                if(caselle_riempibili.length == 0){
+                    cambiaTurno()
+                    cercaMossa()
+                }
+                caselle_riempibili = []
             }
         </script>
     </head>
