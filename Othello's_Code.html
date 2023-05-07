@@ -2,11 +2,14 @@
 <html>
     <head>
         <style>
+            body{
+                background-color: #c2b280;
+            }
             div{
                 border: 1px solid black;
                 width: 68px;
                 height: 68px;
-                background-color: darkgreen;
+                background-color: #627c35;
                 float: left;
                 padding: 0px;
             }
@@ -16,11 +19,13 @@
             }
 
             .black{
-                background-color: black;
+                background-color: #404040;
+                color: white
             }
 
             .white{
-                background-color: white;
+                background-color: #f7f2dc;
+                color: black
             }
             .pedina{
                 width: 60px;
@@ -29,6 +34,8 @@
                 position: relative;
                 left: 4px;
                 top: 4px;
+                text-align: center; /* orizzontale */
+                line-height: 60px; /* verticale */ 
             }
             .quadratino{
                 width: 10px;
@@ -37,6 +44,18 @@
                 position: relative;
                 left: 29px;
                 top: 29px;
+            }
+
+            #nuova_partita{
+                height: 54px;
+                width: 150px;
+                background-color: transparent;
+                float:none;
+                position: relative;
+                left: 748px;
+                top: 70px;
+                border-color: transparent;
+                background-image: url(ricarica2.png);
             }
         </style>
         <script>
@@ -49,7 +68,9 @@
                 }
             }
             let caselle = []
-            let turno = 'white'
+            let turno = 'black'
+            let contapedinewhite = 2 //conta le caselle bianche
+            let contapedineblack = 2 //conta le pedine nere
             for(let i=0; i<=63; i++) {
                 let x = i % 8 +1; 
                 let y = Math.floor(i / 8) + 1;
@@ -72,7 +93,6 @@
                     document.getElementById("board").innerHTML += '<div id = "' + yx + '" onclick="aggiungiPedina('+ yx +',casella'+ yx +')"></div>';
                     
                 }
-                board = document.getElementById("board")
                 document.getElementById("44").innerHTML += "<div class = 'white pedina'></div>"
                 casella44.inside = "white"
                 document.getElementById("45").innerHTML += "<div class = 'black pedina'></div>"
@@ -82,6 +102,20 @@
                 document.getElementById("55").innerHTML += "<div class = 'white pedina'></div>"
                 casella55.inside = "white"
                 cercaMossa()
+            }
+            const visualizzaContoPedine = () => {
+                contapedinewhite = 0
+                contapedineblack = 0
+                for(casella of caselle){
+                    if(casella.inside == "black"){ //conto le caselle nere
+                        contapedineblack += 1
+                    }
+                    else if(casella.inside == "white"){ //conto le caselle bianche
+                        contapedinewhite += 1
+                    }
+                }
+                document.getElementById("contapedinewhite").innerHTML = contapedinewhite
+                document.getElementById("contapedineblack").innerHTML = contapedineblack
             }
             const cambiaTurno = () => {
                 if(turno == 'white'){
@@ -449,17 +483,32 @@
                     }
                     cambiaTurno()
                 }
+
+                visualizzaContoPedine()
                 cercaMossa()
             }
+
+            const vittoria = () => {
+                if(contapedineblack > contapedinewhite){
+                    alert("Il nero ha vinto la partita con " + contapedineblack + " pedine")
+                }
+                else if(contapedinewhite > contapedineblack){
+                    alert("Il bianco ha vinto la partita con " + contapedinewhite + " pedine")
+                }
+                else{
+                    alert("La partita è finita in pareggio")
+                }
+            }
+
             const controllaSopra = (casella, yx, giaChiamato = false) => {
-                let yx_sopra = yx-10
-                if (casella.y == 1){
+                let yx_sopra = yx-10 //es. casella.yx = 46 --> yx_sopra = 36
+                if (casella.y == 1){ //se la casella è nella prima riga return 0
                     //console.log(0)
                     return 0
                 }
-                let casella_sopra = eval('casella'+yx_sopra)
+                let casella_sopra = eval('casella'+yx_sopra) //es. casella_sopra = casella36
                 //console.log(casella_sopra)
-                if(giaChiamato){
+                if(giaChiamato){ //quando la funzione viene richiamata almeno una volta
                     if (casella_sopra.inside == null){
                         //console.log(casella_sopra)
                         return casella_sopra
@@ -471,11 +520,13 @@
                         return 0
                     }
                 }
-                else{
+                else{ //solo al primo giro della funzione
                     //console.log(casella_sopra.inside, casella.inside)
-                    if ((casella_sopra.inside != null) && (casella_sopra.inside != casella.inside)){
-                        //console.log("sono qui")
-                        return controllaSopra(casella_sopra, yx_sopra, true)
+
+                    //controllo che la casella sopra abbia il colore opposto a casella
+                    if ((casella_sopra.inside != null) && (casella_sopra.inside != casella.inside)){ 
+                        return controllaSopra(casella_sopra, yx_sopra, true) 
+                        //richiamo la funzione con giàchiamato = true
                     }
                     else{
                         return 0
@@ -699,45 +750,14 @@
                     }
                 }
             }
-            let fine = false
-            const controllaFine = () => {
-                for(let casella of caselle){
-                    if(casella.inside == null){
-                        fine = false
-                        return false
-                    }
-                }
-                fine = true
-            }
-            const cercaVincitore = () => {
-                let black = 0
-                let white = 0
-                for(let casella of caselle){
-                    if(casella.inside == "white"){
-                        white += 1
-                    }
-                    else{
-                        black += 1
-                    }
-                }
-                if(black > white){
-                    alert("ha vinto il nero con " + black + " pedine")
-                }
-                else{
-                    alert("ha vinto il bianco con " + white + " pedine")
-                }
-            }
+            let giàRicontrollato = false //serve per non far controllare più volte se ci sono mosse disponibili alla fine del gioco
             const cercaMossa = () => {
-                /*controllaFine()
-                if(fine == true){
-                    cercaVincitore()
-                }*/
                 let caselle_riempibili = []
                 for(let casella of caselle){
                     // console.log("sono qui")
                     // console.log(casella)
 
-                    if(casella.inside != turno){
+                    if(casella.inside != turno){ // devo trovare le caselle che abbiano l'attributo inside = turno
                         continue
                     }
                     //console.log(casella)
@@ -749,8 +769,6 @@
                     let casella_NW = controllaNW(casella, casella.yx)
                     let casella_SE = controllaSE(casella, casella.yx)
                     let casella_SW = controllaSW(casella, casella.yx)
-
-                    
 
                     if(casella_sopra != 0){
                         caselle_riempibili.push(casella_sopra)
@@ -794,18 +812,40 @@
                         document.getElementById(yx).innerHTML = '<div class = quadratino></div>'
                     }
                 }
-                console.log(caselle_riempibili)
-                if(caselle_riempibili.length == 0){
-                    cambiaTurno()
+                //console.log(caselle_riempibili)
+                
+                //il colore corrispondente al turno potrebbe non avere mosse disponibili
+                //quindi l'alro colore deve giocare 2 turni consecutivi
+                //però si entra in questa parte di codice anche a fine gioco quando non ci sono più caselle riempibili
+                //quindi lo faccio eseguire solo una volta se il numero di caselle riempite è uguale a 64
+                if(caselle_riempibili.length == 0 && giàRicontrollato == false){ 
+                    //es. il bianco ha appena aggiunto una pedina, si cambia il turno ma il nero non
+                    //ha mosse disponibili, il turno ritorna al bianco
+                    cambiaTurno()  
+                    if(contapedineblack + contapedinewhite == 64){
+                        giàRicontrollato = true
+                        vittoria()
+                    }
                     cercaMossa()
                 }
                 caselle_riempibili = []
             }
+
+            const ricarica = () => {
+                window.location.reload()
+            }
+            const ricarica_con_ritardo = () =>{
+                setTimeout(ricarica, 100)
+            }
         </script>
     </head>
     <body onload="generaScacchiera();"> 
-        <div id="outer-board" style="width: 698px; height: 698px; background-color: rgb(59, 22, 2);">
-            <div id="board" style="width: 560px; height: 560px; position: relative; left: 70px; top: 70px;  "></div>
+        <div id="outer-board" style="width: 698px; height: 698px; background-color: #63462D; border-color: transparent">
+            <div id="board" style="width: 560px; height: 560px; position: relative; left: 70px; top: 70px;"></div>
         </div>
+        <div class = 'white pedina' style = 'left:30px' id="contapedinewhite">2</div>
+        <div class = 'black pedina' style = 'left:60px' id="contapedineblack">2</div>
+        <div id = "nuova_partita" onclick="ricarica_con_ritardo();"></div>
+        <textarea></textarea>
     </body>
 </html>
