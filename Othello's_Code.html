@@ -52,10 +52,16 @@
                 background-color: transparent;
                 float:none;
                 position: relative;
-                left: 748px;
-                top: 70px;
+                left: 732px;
+                top: 90px;
                 border-color: transparent;
                 background-image: url(ricarica2.png);
+            }
+
+            #textarea{
+                position: relative;
+                top: 120px;
+                left: -100px;
             }
         </style>
         <script>
@@ -490,13 +496,13 @@
 
             const vittoria = () => {
                 if(contapedineblack > contapedinewhite){
-                    alert("Il nero ha vinto la partita con " + contapedineblack + " pedine")
+                    document.getElementById("textarea").innerHTML += "Il nero ha vinto la partita con " + contapedineblack + " pedine"
                 }
                 else if(contapedinewhite > contapedineblack){
-                    alert("Il bianco ha vinto la partita con " + contapedinewhite + " pedine")
+                    document.getElementById("textarea").innerHTML += "Il bianco ha vinto la partita con " + contapedinewhite + " pedine"
                 }
                 else{
-                    alert("La partita è finita in pareggio")
+                    document.getElementById("textarea").innerHTML += "la partita è finita in pareggio"
                 }
             }
 
@@ -751,6 +757,7 @@
                 }
             }
             let giàRicontrollato = false //serve per non far controllare più volte se ci sono mosse disponibili alla fine del gioco
+            let contatore = 0
             const cercaMossa = () => {
                 let caselle_riempibili = []
                 for(let casella of caselle){
@@ -822,7 +829,8 @@
                     //es. il bianco ha appena aggiunto una pedina, si cambia il turno ma il nero non
                     //ha mosse disponibili, il turno ritorna al bianco
                     cambiaTurno()  
-                    if(contapedineblack + contapedinewhite == 64){
+                    contatore += 1
+                    if(contapedineblack + contapedinewhite == 64 || contatore == 5){
                         giàRicontrollato = true
                         vittoria()
                     }
@@ -846,6 +854,6 @@
         <div class = 'white pedina' style = 'left:30px' id="contapedinewhite">2</div>
         <div class = 'black pedina' style = 'left:60px' id="contapedineblack">2</div>
         <div id = "nuova_partita" onclick="ricarica_con_ritardo();"></div>
-        <textarea></textarea>
+        <textarea id = "textarea"></textarea>
     </body>
 </html>
