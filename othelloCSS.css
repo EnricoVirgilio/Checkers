@@ -1,0 +1,15 @@
+body{background-color: #c2b280;}
+#outer-board{position: absolute; left: 20%; top: 0; width: 600px; height: 600px; background-color: #63462D; border-color: transparent;}
+#board{width: 90%; height: 90%; position: relative; left: 5%; top: 5%; background-color: black;}
+.square {width: 12.5%; height: 12.5%; background-color: #627c35; float: left;}
+.pedina {position: relative; left: 5%; top: 5%; width: 90%; height: 90%; border-radius: 50%;}
+.quadratino {width: 20%; height: 20%; background-color: gray; position: relative; left: 40%; top: 40%; border: 1px solid black;}
+.black {background-color: #404040; color: white}
+.white {background-color: #f7f2dc; color: black}
+.wrapper {border: 1px solid black; height:100%;}
+#contapedinewhite, #contapedineblack {display: inline-block; width: 60px; height: 60px; border-radius: 30px; line-height: 60px; text-align: center; margin: 10px 10px 10px 0;}
+#nuova_partita {height: 54px; width: 150px; background-color: transparent; border-color: transparent; background-image: url(ricarica2.png); margin-bottom: 10px;}
+#textarea {margin-bottom: 10px;}
+#apertura{height: 80px; width: 190px; /*position: absolute; top: 230px; left: 722px;*/ background-color: #c0c0c0;  text-align: center;}
+#titolo{color: #35682d;}
+#tipo_apertura{color: #dc143c; font-weight: bold;}
