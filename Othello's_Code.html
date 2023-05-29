@@ -5,65 +5,108 @@
             body{
                 background-color: #c2b280;
             }
-            div{
-                border: 1px solid black;
-                width: 68px;
-                height: 68px;
+            #left-col { 
+                height: 300px;
+                width: 20%;
+                /*display: none; */
+            } 
+
+            #outer-board {
+                position: absolute;
+                left: 20%;
+                top: 0;
+                width: 600px;
+                height: 600px;
+                background-color: #63462D;
+                border-color: transparent;
+            }
+            #board {
+                width: 90%;
+                height: 90%;
+                position: relative;
+                left: 5%;
+                top: 5%; 
+                background-color: black;  
+            }
+            .square {
+                width: 12.5%;
+                height: 12.5%;
                 background-color: #627c35;
                 float: left;
-                padding: 0px;
             }
-
-            #board{
-                border: 0px
+            .pedina {
+                position: relative;
+                left: 5%;
+                top: 5%;
+                width: 90%;
+                height: 90%;
+                border-radius: 50%;
             }
-
-            .black{
+            .quadratino {
+                width: 20%;
+                height: 20%;
+                background-color: gray;
+                position: relative;
+                left: 40%;
+                top: 40%;
+                border: 1px solid black;
+            }
+            .black {
                 background-color: #404040;
                 color: white
             }
-
-            .white{
+            .white {
                 background-color: #f7f2dc;
                 color: black
             }
-            .pedina{
+            .wrapper {
+                border: 1px solid black;
+                height:100%;
+            }
+
+            #contapedinewhite, #contapedineblack {
+                display: inline-block;
                 width: 60px;
                 height: 60px;
                 border-radius: 30px;
-                position: relative;
-                left: 4px;
-                top: 4px;
-                text-align: center; /* orizzontale */
-                line-height: 60px; /* verticale */ 
-            }
-            .quadratino{
-                width: 10px;
-                height: 10px;
-                background-color: gray;
-                position: relative;
-                left: 29px;
-                top: 29px;
+                line-height: 60px;
+                text-align: center;
+                margin: 10px 10px 10px 0;
             }
 
-            #nuova_partita{
+            #nuova_partita {
                 height: 54px;
                 width: 150px;
                 background-color: transparent;
-                float:none;
-                position: relative;
-                left: 732px;
-                top: 90px;
                 border-color: transparent;
                 background-image: url(ricarica2.png);
+                margin-bottom: 10px;
             }
 
-            #textarea{
-                position: relative;
-                top: 120px;
-                left: -100px;
+            #textarea {
+                margin-bottom: 10px;
+            }
+
+            #apertura{
+                height: 80px;
+                width: 190px;
+                /*position: absolute;
+                top: 230px;
+                left: 722px;*/
+                background-color: #c0c0c0; 
+                text-align: center;
+            }
+
+            #titolo{
+                color: #35682d;
+            }
+
+            #tipo_apertura{
+                color: #dc143c;
+                font-weight: bold;
             }
         </style>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script>
             class Casella {
                 constructor(yx, y, x) {
@@ -73,6 +116,124 @@
                     this.x = x
                 }
             }
+            const limite_sinistra = 1
+            const limite_destra = 8
+            const limite_su = 1
+            const limite_giù = 8
+            const nessun_limite = undefined
+
+            const direzione_sopra = -10
+            const direzione_sotto = +10
+            const direzione_destra = +1
+            const direzione_sinistra = -1
+            const direzione_NW = -11
+            const direzione_NE = -9
+            const direzione_SW = +9
+            const direzione_SE = +11
+
+            const diagonal_opening = ["b34", "w33"]
+            const diagonal_opening_plus = ["b34", "w33", "b43"]
+            const diagonal_opening_plus_plus = ["b34", "w33", "b43", "w35"]
+            const Tobidashi = ["b34", "w33", "b43", "w35", "b24"]
+            const Tobidashi_plus = ["b34", "w33", "b43", "w35", "b24", "w42"]
+            const Heath_Bat = ["b34", "w33", "b43", "w35", "b24", "w42", "b46"]
+            const Heath_Chimney = ["b34", "w33", "b43", "w35", "b24", "w53"]
+            const Iwasaki_variation = ["b34", "w33", "b43", "w35", "b24", "w42", "b52"]
+
+            const openings = {
+                "Diagonal opening": ["b43", "w33"],
+                "Diagonal opening +": ["b43", "w33", "b34"],
+                "Diagonal opening ++": ["b43", "w33", "b34", "w53"],
+                "Tobidashi": ["b43", "w33", "b34", "w53", "b42"],
+                "Tobidashi +": ["b43", "w33", "b34", "w53", "b42", "w24"],
+                "Heath_Bat": ["b43", "w33", "b34", "w53", "b42", "w24", "b64"],
+                "Heath_Chimney": ["b43", "w33", "b34", "w53", "b42", "w35"],
+                "Iwasaki_variation": ["b43", "w33", "b34", "w53", "b42", "w24", "b25"],
+                "Cow": ["b43", "w33", "b34", "w53", "b64"],
+                "Chimney": ["b43", "w33", "b34", "w53", "b64", "w35"],
+                "Cow +": ["b43", "w33", "b34", "w53", "b64", "w46"],
+                "Rose-v-Toth": ["b43", "w33", "b34", "w53", "b64", "w46", "b56"],
+                "Tanida": ["b43", "w33", "b34", "w53", "b64", "w46", "b56", "w24"],
+                "Aircraft/Feldborg": ["b43", "w33", "b34", "w53", "b64", "w46", "b56", "w24", "b52"],
+                "Cow Bat/Bat/Cabridge": ["b43", "w33", "b34", "w53", "b64", "w46", "b42"],
+                "Parallel Opening": ["b43", "w53"],
+                "Parallel Opening +": ["b43", "w53", "b64"],
+                "Perpendicular Opening": ["b43", "w35"],
+                "Perpendicular Opening + (1)": ["b43", "w35", "b56"],
+                "Ganglion/No-Cat": ["b43", "w35", "b56", "w42"],
+                "Swallow": ["b43", "w35", "b56", "w42", "b36"],
+                "Perpendicular Opening + (2)": ["b43", "w35", "b66"],
+                "Bent Ganglion": ["b43", "w35", "b66", "w42"],
+                "Perpendicular Opening ++": ["b43", "w35", "b66", "w65"],
+                "Tiger": ["b43", "w35", "b66", "w65", "b56"],
+                "Aubrey/Tanaka": ["b43", "w35", "b66", "w65", "b56", "w67"],
+                "Tiger +": ["b43", "w35", "b66", "w65", "b56", "w53"],
+                "Tiger ++": ["b43", "w35", "b66", "w65", "b56", "w53", "b46"],
+                "Tiger +++": ["b43", "w35", "b66", "w65", "b56", "w53", "b46", "w67"],
+                "Rose-Bill": ["b43", "w35", "b66", "w65", "b56", "w53", "b46", "w67", "b76"],
+                "Tamenori": ["b43", "w35", "b66", "w65", "b56", "w53", "b46", "w67", "b76", "w34"],
+                "Rose-Bill +": ["b43", "w35", "b66", "w65", "b56", "w53", "b46", "w67", "b76", "w64"],
+                "Central Rose-Bill/Dead Draw": ["b43", "w35", "b66", "w65", "b56", "w53", "b46", "w67", "b76", "w57"],
+                "X-square Opening": ["b43", "w33", "b34", "w53", "b22"],
+                "Snake/Peasant": ["b43", "w33", "b34", "w53", "b32"],
+                "Lysons": ["b43", "w33", "b34", "w53", "b32", "w36"],
+                "Pyramid/Checkerboarding Peasant": ["b43", "w33", "b34", "w53", "b32", "w46", "b52", "w42", "b63", "w64", "b56"],
+                "Mimura Variation II": ["b43", "w33", "b34", "w53", "b42", "w24", "b23", "w46", "b64", "w63", "b56", "w65", "b76"],
+                "Raccoon Dog": ["b43", "w33", "b34", "w53", "b52"],
+                "Rocket": ["b43", "w33", "b34", "w53", "b62"],
+                "Hamilton": ["b43", "w33", "b34", "w53", "b62", "w63", " b52"],
+                "Lollipop": ["b43", "w33", "b34", "w53", "b62", "w35"],
+                "Sailboat": ["b43", "w33", "b34", "w53", "b64", "w46", "b56", "w24", "b46", "w74"],
+                "Maruoka": ["b43", "w33", "b34", "w53", "b64", "w46", "b56", "w65", "b63", "w74"],
+                "Landau": ["b43", "w33", "b34", "w53", "b64", "w46", "b56", "w65", "b66"],
+                "Buffalo/Kenichi Variation": ["b43", "w33", "b34", "w53", "b66"],
+                "Maruoka Buffalo": ["b43", "w33", "b34", "w53", "b66", "w25", "b63"],
+                "Tanida Buffalo": ["b43", "w33", "b34", "w53", "b66", "w35", "b63", "w56", "b46", "w57"],
+                "Hokuriku Bufalo": ["b43", "w33", "b34", "w53", "b66", "w56"],
+                "Wing Variation": ["b43", "w33", "b65", "w53"],
+                "Semi-Wing Variation": ["b43", "w33", "b56", "w53"],
+                "Mimura": ["b43", "w35", "b46", "w53", "b64", "w65"],
+                "Shaman/Danish": ["b43", "w35", "b46", "w53", "b64", "w36", "b63"],
+                "Inoue": ["b43", "w35", "b46", "w53", "b64", "w36", "b34"],
+                "Iago": ["b43", "w35", "b46", "w53", "b64", "w36", "b34", "w33"],
+                "Bhagat": ["b43", "w35", "b46", "w53", "b64", "w36", "b25"],
+                "Rose": ["b43", "w35", "b46", "w53", "b64", "w36", "b65", "w33", "b34", "w25"],
+                "Flat": ["b43", "w35", "b46", "w53", "b64", "w36", "b65", "w33", "b34", "w25", "b52"],
+                "Rotating Flat": ["b43", "w35", "b46", "w53", "b64", "w36", "b65", "w33", "b34", "w25", "b52", "w56"],
+                "Murakami Variation": ["b43", "w35", "b46", "w53", "b64", "w36", "b65", "w33", "b34", "w25", "b52", "w56", "b32"],
+                "Rotating Flat (Kling Continuation)": ["b43", "w35", "b46", "w53", "b64", "w36", "b65", "w33", "b34", "w25", "b52", "w56", "b42", "w66", "b23", "w75", "b24", "w73"],
+                "Rose-Birth": ["b43", "w35", "b46", "w53", "b64", "w36", "b65", "w33", "b34", "w25", "b62", " w56"],
+                "Brightstein": ["b43", "w35", "b46", "w53", "b64", "w36", "b65", "w33", "b34", "w25", "b62", " w56", "b42", "w66", "b57", "w74"],
+                "Rose-Birdie/Rose-Tamenori": ["b43", "w35", "b46", "w53", "b64", "w36", "b65", "w33", "b34", "w25", "b62", " w56", "b57"],
+                "Rose-Tamenori-Kling": ["b43", "w35", "b46", "w53", "b64", "w36", "b65", "w33", "b34", "w25", "b57", "w66"],
+                "Greenberg/Dawg": ["b43", "w35", "b46", "w53", "b64", "w36", "b65", "w33", "b34", "w25", "b24"],
+                "Ralle": ["b43", "w35", "b46", "w53", "b64", "w36", "b65", "w63"],
+                "Horse": ["b43", "w35", "b46", "w53", "b65"], 
+                "Stephenson": ["b43", "w35", "b66", "w65", "b56", "w53", "b33"],
+                "No-Kung": ["b43", "w35", "b66", "w65", "b56", "w53", "b33", "w42"],
+                "No-Kung (Continuation)": ["b43", "w35", "b66", "w65", "b56", "w53", "b33", "w42", "b64", "w63", "b52", "w61", "b62", "w73"],
+                "Comp'Oth": ["b43", "w35", "b66", "w65", "b56", "w53", "b33", "w63"],
+                "F.A.T Draw": ["b43", "w35", "b66", "w65", "b56", "w53", "b33", "w63", "b34", "w24", "b25", "w32", "b13", "w23", "b42", "w31", "b51", "w52", "b61", "w41", "b21"],
+                "Lightning Bolt": ["b43", "w35", "b66", "w65", "b56", "w53", "b33", "w63", "b64"],
+                "Kung": ["b43", "w35", "b66", "w65", "b56", "w53", "b33", "w57"],
+                "Leader's Tiger": ["b43", "w35", "b66", "w65", "b56", "w53", "b34"],
+                "Brightwell": ["b43", "w35", "b66", "w65", "b56", "w53", "b64"],
+                "Ishii": ["b43", "w35", "b66", "w65", "b56", "w53", "b46", "w57", "b47", "w36", "b63", "w34", "b64"],
+                "Mainline Tiger": ["b43", "w35", "b66", "w65", "b56", "w53", "b46", "w57", "b47", "w36", "b63", "w34", "b64", "w32", "b33", "w42", "b25", "w62"],
+                "Aubrey (Feldborg Continuation)": ["b43", "w35", "b66", "w65", "b56", "w67", "b75", "w53"],
+                "No-Cat (Continuation)": ["b43", "w35", "b56", "w42", "b36", "w46", "b25", "w65", "b57", "w66", "b64", "w63"],
+                "Italian": ["b43", "w35", "b56", "w65", "b34"],
+                "Cat": ["b43", "w35", "b56", "w65", "b46"],
+                "Sakaguchi": ["b43", "w35", "b56", "w65", "b46", "w53", "b64", "w63", "b76", "w36"],
+                "Berner": ["b43", "w35", "b56", "w65", "b46", "w53", "b64", "w63", "b76", "w57", "b67"],
+                "Bat (Piau Continuation 2)": ["b43", "w33", "b34", "w53", "b64", "w46", "b42", "w62", "b52", "w63", "w32"],
+                "Melnikov/Bat": ["b43", "w33", "b34", "w53", "b64", "w46", "b42", "w62", "b52", "w63", "b56"],
+                "Bat (Kling Continuation)": ["b43", "w33", "b34", "w53", "b64", "w46", "b42", "w32", "b62", "w35", "b23", "w41", "b51", "w61", "b24"],
+                "Bat (kling Alternative)": ["b43", "w33", "b34", "w53", "b64", "w46", "b42", "w35", "b32"]
+                // Aggiungere altre aperture qui...
+              };
+
+            let elenco_mosse = []
             let caselle = []
             let turno = 'black'
             let contapedinewhite = 2 //conta le caselle bianche
@@ -96,16 +257,16 @@
                     //console.log(x, y)
 
                     let yx = String(y)+String(x);
-                    document.getElementById("board").innerHTML += '<div id = "' + yx + '" onclick="aggiungiPedina('+ yx +',casella'+ yx +')"></div>';
+                    document.getElementById("board").innerHTML += '<div id = "' + yx + '" class="square" onclick="aggiungiPedina('+ yx +',casella'+ yx +')"><div class="wrapper"></div></div>';
                     
                 }
-                document.getElementById("44").innerHTML += "<div class = 'white pedina'></div>"
+                document.getElementById("44").getElementsByClassName('wrapper')[0].innerHTML += "<div class = 'white pedina'></div>"
                 casella44.inside = "white"
-                document.getElementById("45").innerHTML += "<div class = 'black pedina'></div>"
+                document.getElementById("45").getElementsByClassName('wrapper')[0].innerHTML += "<div class = 'black pedina'></div>"
                 casella45.inside = "black"
-                document.getElementById("54").innerHTML += "<div class = 'black pedina'></div>"
+                document.getElementById("54").getElementsByClassName('wrapper')[0].innerHTML += "<div class = 'black pedina'></div>"
                 casella54.inside = "black"
-                document.getElementById("55").innerHTML += "<div class = 'white pedina'></div>"
+                document.getElementById("55").getElementsByClassName('wrapper')[0].innerHTML += "<div class = 'white pedina'></div>"
                 casella55.inside = "white"
                 cercaMossa()
             }
@@ -123,6 +284,36 @@
                 document.getElementById("contapedinewhite").innerHTML = contapedinewhite
                 document.getElementById("contapedineblack").innerHTML = contapedineblack
             }
+
+            const mostraApertura = (opening) => {
+                document.getElementById("tipo_apertura").innerHTML = opening
+            }
+
+            const cercaAperture = (mosse) => {
+                let lista_tampone = mosse.slice() //creo una copia per non cambiare la lista elenco_mosse
+                for(let opening in openings){ //scorro le varie aperture
+                    //console.log(opening + " > " + openings[opening], lista_tampone)
+                    //console.log(openings[opening] + "  " + lista_tampone)
+                    //console.log(lista_tampone, lista_tampone.join(''), openings[opening].join(''), lista_tampone.join('') == openings[opening].join(''))
+
+                    //controllo che queste 2 liste siano composte da elementi uguali
+                    if( openings[opening].length === lista_tampone.length &&
+                        lista_tampone.join('') == openings[opening].join('')
+                        //openings[opening].every((value, index) => value === lista_tampone[index])
+                    ){  
+                        //se trovo una apertura corrispondente alla lista tampone la mostro
+                        mostraApertura(opening)
+                        return
+                    }
+                    else if(lista_tampone.length == 0){
+                        mostraApertura("Nessuna apertura conosciuta")
+                        return
+                    }
+                }
+                lista_tampone.pop()
+                cercaAperture(lista_tampone)
+            }
+
             const cambiaTurno = () => {
                 if(turno == 'white'){
                     turno = 'black'
@@ -133,358 +324,201 @@
             }
             const cambioColore = () => {
                 if(turno == "white"){
-                    return "<div class = 'white pedina'></div>"
+                   return "<div class = 'white pedina'></div>"
                 }
                 else{
                     return "<div class = 'black pedina'></div>"
                 }
             }
+
+            //la variabile controllo parte già col valore false
             let controllo = false
-            const controlloCambioSotto = (casella, casella_iniziale) => {
-                let yx_sotto = casella.yx+10
-                if(casella.y == 8){
-                    controllo = false
-                    return false
+
+            //controllo cambio serve per controllare che io possa effettivamente cambiare le pedine lungo la direzione desiderata
+            //una volta controllate tutte le condizioni necessarie al cambio si darà un valore true o false ad una variabile di controllo
+            //se la variabile è true chiamo la funzione cambio per quella direzione, se false non cambio le pedine
+
+            //per rendere true la variabile controllo io devo trovare una sequenza di caselle di un determinato colore
+            //circondate da 2 caselle del colore opposto(una di queste 2 caselle è quella che ho appena messo col mouse)
+            //la sequenza di caselle poi diventerà del colore delle 2 esterne con la funzione cambio
+
+            const controlloCambio = (casella, casella_iniziale, direzione, limite_x, limite_y) => {
+                //quando chiamo per la prima volta la funzione casella e casella iniziale coincidono
+                //però essendo una funzione ricorsiva casella cambierà mentre casella iniziale rimane sempre la stessa
+
+                let yx_vicino = casella.yx + direzione // es. 54(yx_vicino) = 44(casella.yx) + 10(direzione_destra)
+
+                //se la x o la y del parametro casella raggiungono il limite massimo dovuto alla direzione
+                //viene dato il valore false alla variabile di controllo
+                if(casella.x == limite_x || casella.y == limite_y){
+                    controllo = false //non cambio colore alle pedine
+                    return false // mi serve per interrompere l'esecuzione
                 }
-                let casella_sotto = eval("casella" + yx_sotto) 
-                if(casella_sotto.inside == casella_iniziale.inside){
+                let casella_vicina = eval("casella" + yx_vicino) //es. casella54 = "casella" + 54
+
+                //se la casella vicina ha come colore lo stesso della iniziale controllo = true
+                //N.B casella vicina può anche essere lontana da casella iniziale essendo una funzione ricorsiva
+                //N.B la sequenza di caselle tra le 2 esterne può anche essere 0, verrà chiamata la funzione cambio
+                //che però non avrà effetti concreti 
+                if(casella_vicina.inside == casella_iniziale.inside){
                     controllo = true
-                }
-                else if(casella_sotto.inside != casella_iniziale.inside && casella_sotto.inside != null){
-                    controlloCambioSotto(casella_sotto, casella_iniziale)
-                }
-                else{
-                    controllo = false
-                }
-            }
-            const controlloCambioSopra = (casella, casella_iniziale) => {
-                let yx_sopra = casella.yx-10
-                if(casella.y == 1){
-                    controllo = false
-                    return false
-                }
-                let casella_sopra = eval("casella" + yx_sopra) 
-                if(casella_sopra.inside == casella_iniziale.inside){
-                    controllo = true
-                }
-                else if(casella_sopra.inside != casella_iniziale.inside && casella_sopra.inside != null){
-                    controlloCambioSopra(casella_sopra, casella_iniziale)
-                }
-                else{
-                    controllo = false
-                }
-            }
-            const controlloCambioDestra = (casella, casella_iniziale) => {
-                let yx_destra = casella.yx+1
-                if(casella.x == 8){
-                    controllo = false
-                    return false
-                }
-                let casella_destra = eval("casella" + yx_destra) 
-                if(casella_destra.inside == casella_iniziale.inside){
-                    controllo = true
-                }
-                else if(casella_destra.inside != casella_iniziale.inside && casella_destra.inside != null){
-                    controlloCambioDestra(casella_destra, casella_iniziale)
-                }
-                else{
-                    controllo = false
-                }
-            }
-            const controlloCambioSinistra = (casella, casella_iniziale) => {
-                let yx_sinistra = casella.yx-1
-                if(casella.x == 1){
-                    controllo = false
-                    return false
-                }
-                let casella_sinistra = eval("casella" + yx_sinistra) 
-                if(casella_sinistra.inside == casella_iniziale.inside){
-                    controllo = true
-                }
-                else if(casella_sinistra.inside != casella_iniziale.inside && casella_sinistra.inside != null){
-                    controlloCambioSinistra(casella_sinistra, casella_iniziale)
-                }
-                else{
-                    controllo = false
-                }
-            }
-            const controlloCambioNE = (casella, casella_iniziale) => {
-                let yx_NE = casella.yx-9
-                if(casella.y == 1 || casella.x == 8){
-                    controllo = false
-                    return false
-                }
-                let casella_NE = eval("casella" + yx_NE) 
-                if(casella_NE.inside == casella_iniziale.inside){
-                    controllo = true
-                }
-                else if(casella_NE.inside != casella_iniziale.inside && casella_NE.inside != null){
-                    controlloCambioNE(casella_NE, casella_iniziale)
-                }
-                else{
-                    controllo = false
-                }
-            }
-            const controlloCambioNW = (casella, casella_iniziale) => {
-                let yx_NW = casella.yx-11
-                if(casella.y == 1 || casella.x == 1){
-                    controllo = false
-                    return false
-                }
-                let casella_NW = eval("casella" + yx_NW) 
-                if(casella_NW.inside == casella_iniziale.inside){
-                    controllo = true
-                }
-                else if(casella_NW.inside != casella_iniziale.inside && casella_NW.inside != null){
-                    controlloCambioNW(casella_NW, casella_iniziale)
-                }
-                else{
-                    controllo = false
-                }
-            }
-            const controlloCambioSE = (casella, casella_iniziale) => {
-                let yx_SE = casella.yx+11
-                if(casella.y == 8 || casella.x == 8){
-                    controllo = false
-                    return false
-                }
-                let casella_SE = eval("casella" + yx_SE) 
-                if(casella_SE.inside == casella_iniziale.inside){
-                    controllo = true
-                }
-                else if(casella_SE.inside != casella_iniziale.inside && casella_SE.inside != null){
-                    controlloCambioSE(casella_SE, casella_iniziale)
-                }
-                else{
-                    controllo = false
-                }
-            }
-            const controlloCambioSW = (casella, casella_iniziale) => {
-                let yx_SW = casella.yx+9
-                if(casella.y == 8 || casella.x == 1){
-                    controllo = false
-                    return false
-                }
-                let casella_SW = eval("casella" + yx_SW) 
-                if(casella_SW.inside == casella_iniziale.inside){
-                    controllo = true
-                }
-                else if(casella_SW.inside != casella_iniziale.inside && casella_SW.inside != null){
-                    controlloCambioSW(casella_SW, casella_iniziale)
-                }
-                else{
-                    controllo = false
-                }
-            }
-            const cambioSotto = (casella) => {
-                if(casella.y != 8){
-                    let yx_sotto = casella.yx+10
-                    let casella_sotto = eval('casella'+ yx_sotto)
-                    if(casella_sotto.inside != casella.inside && casella_sotto.inside != null){
-                        casella_sotto.inside = casella.inside
-                        //console.log(cambioColore())
-                        document.getElementById(yx_sotto).innerHTML = cambioColore()
-                        cambioSotto(casella_sotto)
-                    }
                 }
 
-                
-            }
-            const cambioSopra = (casella) => {
-                if(casella.y != 1){
-                    let yx_sopra = casella.yx-10
-                    let casella_sopra = eval('casella'+yx_sopra)
-                    if(casella_sopra.inside != casella.inside && casella_sopra.inside != null){
-                        casella_sopra.inside = casella.inside
-                        //console.log(cambioColore())
-                        document.getElementById(yx_sopra).innerHTML = cambioColore()
-                        cambioSopra(casella_sopra)
-                    }
+                //se la casella vicina non è vuota ed è del colore opposto a quella iniziale richiamo la funzione
+                //al posto di casella metterò casella vicina
+                //la funzione verrà richiamata più volte fino a quando non trovo una casella del colore uguale a quella iniziale
+                else if(casella_vicina.inside != casella_iniziale.inside && casella_vicina.inside != null){
+                    controlloCambio(casella_vicina, casella_iniziale, direzione, limite_x, limite_y)
+                }
+
+                //se l'interno di casella_vicina è vuoto allora non potrò mai avere una sequenza di caselle circondata da 2
+                //del colore opposto
+                //
+                else{
+                    controllo = false
                 }
             }
-            const cambioDestra = (casella) => {
-                if(casella.x != 8){
-                    let yx_destra = casella.yx+1
-                    let casella_destra = eval('casella'+yx_destra)
-                    if(casella_destra.inside != casella.inside && casella_destra.inside != null){
-                        casella_destra.inside = casella.inside
+            const cambio = (casella, direzione, limite_x = null, limite_y = null) => {
+                if(casella.x != limite_x && casella.y != limite_y){
+                    let yx_vicino = casella.yx+direzione
+                    let casella_vicina = eval('casella'+ yx_vicino)
+                    //console.log(casella_vicina)
+                    if(casella_vicina.inside != casella.inside && casella_vicina.inside != null){
+                        casella_vicina.inside = casella.inside
+                        document.getElementById(yx_vicino).getElementsByClassName('wrapper')[0].innerHTML = cambioColore();
+                        try {
+                            $("#"+ String(casella_vicina.yx)+" .pedina").fadeTo(500, 0.3).fadeTo(500, 1)
+                        }
+                        catch(e) {
+                            console.error(e);
+                        }
+                        //document.getElementById(yx_vicino).innerHTML = cambioColore();
                         //console.log(cambioColore())
-                        document.getElementById(yx_destra).innerHTML = cambioColore()
-                        cambioDestra(casella_destra)
-                    }
-                }
-            }
-            const cambioSinistra = (casella) => {
-                if(casella.x != 1){
-                    let yx_sinistra = casella.yx-1
-                    let casella_sinistra = eval('casella'+yx_sinistra)
-                    if(casella_sinistra.inside != casella.inside && casella_sinistra.inside != null){
-                        casella_sinistra.inside = casella.inside
-                        //console.log(cambioColore())
-                        document.getElementById(yx_sinistra).innerHTML = cambioColore()
-                        cambioSinistra(casella_sinistra)
-                    }
-                }
-            }
-            const cambioNE = (casella) => {
-                if(casella.x != 8 && casella.y != 1){
-                    let yx_NE = casella.yx-9
-                    let casella_NE = eval('casella'+yx_NE)
-                    if(casella_NE.inside != casella.inside && casella_NE.inside != null){
-                        casella_NE.inside = casella.inside
-                        //console.log(cambioColore())
-                        document.getElementById(yx_NE).innerHTML = cambioColore()
-                        cambioNE(casella_NE)
-                    }
-                }
-            }
-            const cambioNW = (casella) => {
-                if(casella.x != 1 && casella.y != 1){
-                    let yx_NW = casella.yx-11
-                    let casella_NW = eval('casella'+yx_NW)
-                    if(casella_NW.inside != casella.inside && casella_NW.inside != null){
-                        casella_NW.inside = casella.inside
-                        //console.log(cambioColore())
-                        document.getElementById(yx_NW).innerHTML = cambioColore()
-                        cambioNW(casella_NW)
-                    }
-                }
-            }
-            const cambioSE = (casella) => {
-                if(casella.x != 8 && casella.y != 8){
-                    let yx_SE = casella.yx+11
-                    let casella_SE = eval('casella'+yx_SE)
-                    if(casella_SE.inside != casella.inside && casella_SE.inside != null){
-                        casella_SE.inside = casella.inside
-                        //console.log(cambioColore())
-                        document.getElementById(yx_SE).innerHTML = cambioColore()
-                        cambioSE(casella_SE)
-                    }
-                }
-            }
-            const cambioSW = (casella) => {
-                if(casella.x != 1 && casella.y != 8){
-                    let yx_SW = casella.yx+9
-                    let casella_SW = eval('casella'+yx_SW)
-                    if(casella_SW.inside != casella.inside && casella_SW.inside != null){
-                        casella_SW.inside = casella.inside
-                        //console.log(cambioColore())
-                        document.getElementById(yx_SW).innerHTML = cambioColore()
-                        cambioSW(casella_SW)
+                        cambio(casella_vicina, direzione, limite_x, limite_y);
                     }
                 }
             }
             const aggiungiPedina = (yx, casella) => {
                 //console.log(document.getElementById(yx).innerHTML)
-                if(document.getElementById(yx).innerHTML != "" && casella.inside == null){
+                if(document.getElementById(yx).getElementsByClassName('wrapper')[0].innerHTML != "" && casella.inside == null){
                     if(turno == 'white'){
-                        document.getElementById(yx).innerHTML = "<div class = 'white pedina'></div>"
+                        elenco_mosse.push("w"+yx)
+                        cercaAperture(elenco_mosse)
+                        //document.getElementById(yx).innerHTML = "<div class = 'white pedina'></div>"
+                        document.getElementById(yx).getElementsByClassName('wrapper')[0].innerHTML = "<div class = 'white pedina'></div>"
                         casella.inside = "white"
-                        if(casella.x != 8){
-                            controlloCambioDestra(casella,casella)
+
+                        //destra
+                        if(casella.x != limite_destra){
+                            controlloCambio(casella, casella, direzione_destra, limite_destra, nessun_limite)
                             if(controllo == true){
-                                cambioDestra(casella)
+                                cambio(casella, direzione_destra, limite_destra, nessun_limite)
                             }
                         }
-                        if(casella.x != 1){
-                            controlloCambioSinistra(casella,casella)
+                        if(casella.x != limite_sinistra){
+                            controlloCambio(casella, casella, direzione_sinistra, limite_sinistra, nessun_limite)
                             if(controllo == true){
-                                cambioSinistra(casella)
+                                cambio(casella, direzione_sinistra, limite_sinistra, nessun_limite)
                             }
                         }
-                        if(casella.x != 8 && casella.y != 1){
-                            controlloCambioNE(casella,casella)
+                        if(casella.x != limite_destra && casella.y != limite_su){
+                            controlloCambio(casella, casella, direzione_NE, limite_destra, limite_su)
                             if(controllo == true){
-                                cambioNE(casella)
+                                cambio(casella, direzione_NE, limite_destra, limite_su)
                             }
                         }
-                        if(casella.x != 8 && casella.y != 8){
-                            controlloCambioSE(casella,casella)
+                        if(casella.x != limite_destra && casella.y != limite_giù){
+                            controlloCambio(casella, casella, direzione_SE, limite_destra, limite_giù)
                             if(controllo == true){
-                                cambioSE(casella)
+                                cambio(casella, direzione_SE, limite_destra, limite_giù)
                             }
                         }
-                        if(casella.y != 1){
-                            controlloCambioSopra(casella,casella)
+                        if(casella.y != limite_su){
+                            controlloCambio(casella, casella, direzione_sopra, nessun_limite, limite_su)
                             if(controllo == true){
-                                cambioSopra(casella)
+                                cambio(casella, direzione_sopra, nessun_limite, limite_su)
                             }
                         }
-                        if(casella.y != 8){
-                            controlloCambioSotto(casella,casella)
+                        if(casella.y != limite_giù){
+                            controlloCambio(casella, casella, direzione_sotto, nessun_limite, limite_giù)
                             if(controllo == true){
-                                cambioSotto(casella)
+                                cambio(casella, direzione_sotto, nessun_limite, limite_giù)
                             }
                         }
-                        if(casella.x != 1 && casella.y != 1){
-                            controlloCambioNW(casella,casella)
+                        if(casella.x != limite_sinistra && casella.y != limite_su){
+                            controlloCambio(casella, casella, direzione_NW, limite_sinistra, limite_su)
                             if(controllo == true){
-                                cambioNW(casella)
+                                cambio(casella, direzione_NW, limite_sinistra, limite_su)
                             }
                         }
-                        if(casella.x != 1 && casella.y != 8){
-                            controlloCambioSW(casella,casella)
+                        if(casella.x != limite_sinistra && casella.y != limite_giù){
+                            controlloCambio(casella, casella, direzione_SW, limite_sinistra, limite_giù)
                             if(controllo == true){
-                                cambioSW(casella)
+                                cambio(casella, direzione_SW, limite_sinistra, limite_giù)
                             }
                         }  
                     }
                     if(turno == 'black'){
-                        document.getElementById(yx).innerHTML = "<div class = 'black pedina'></div>"
+                        elenco_mosse.push("b"+yx)
+                        cercaAperture(elenco_mosse)
+                        //document.getElementById(yx).innerHTML = "<div class = 'black pedina'></div>"
+                        document.getElementById(yx).getElementsByClassName('wrapper')[0].innerHTML = "<div class = 'black pedina'></div>"
                         casella.inside = "black"
-                        if(casella.x != 8){
-                            controlloCambioDestra(casella,casella)
+                        if(casella.x != limite_destra){
+                            controlloCambio(casella, casella, direzione_destra, limite_destra, nessun_limite)
                             if(controllo == true){
-                                cambioDestra(casella)
+                                cambio(casella, direzione_destra, limite_destra, nessun_limite)
                             }
                         }
-                        if(casella.x != 1){
-                            controlloCambioSinistra(casella,casella)
+                        if(casella.x != limite_sinistra){
+                            controlloCambio(casella, casella, direzione_sinistra, limite_sinistra, nessun_limite)
                             if(controllo == true){
-                                cambioSinistra(casella)
+                                cambio(casella, direzione_sinistra, limite_sinistra, nessun_limite)
                             }
                         }
-                        if(casella.x != 8 && casella.y != 1){
-                            controlloCambioNE(casella,casella)
+                        if(casella.x != limite_destra && casella.y != limite_su){
+                            controlloCambio(casella, casella, direzione_NE, limite_destra, limite_su)
                             if(controllo == true){
-                                cambioNE(casella)
+                                cambio(casella, direzione_NE, limite_destra, limite_su)
                             }
                         }
-                        if(casella.x != 8 && casella.y != 8){
-                            controlloCambioSE(casella,casella)
+                        if(casella.x != limite_destra && casella.y != limite_giù){
+                            controlloCambio(casella, casella, direzione_SE, limite_destra, limite_giù)
                             if(controllo == true){
-                                cambioSE(casella)
+                                cambio(casella, direzione_SE, limite_destra, limite_giù)
                             }
                         }
-                        if(casella.y != 1){
-                            controlloCambioSopra(casella,casella)
+                        if(casella.y != limite_su){
+                            controlloCambio(casella, casella, direzione_sopra, nessun_limite, limite_su)
                             if(controllo == true){
-                                cambioSopra(casella)
+                                cambio(casella, direzione_sopra, nessun_limite, limite_su)
                             }
                         }
-                        if(casella.y != 8){
-                            controlloCambioSotto(casella,casella)
+                        if(casella.y != limite_giù){
+                            controlloCambio(casella, casella, direzione_sotto, nessun_limite, limite_giù)
                             if(controllo == true){
-                                cambioSotto(casella)
+                                cambio(casella, direzione_sotto, nessun_limite, limite_giù)
                             }
                         }
-                        if(casella.x != 1 && casella.y != 1){
-                            controlloCambioNW(casella,casella)
+                        if(casella.x != limite_sinistra && casella.y != limite_su){
+                            controlloCambio(casella, casella, direzione_NW, limite_sinistra, limite_su)
                             if(controllo == true){
-                                cambioNW(casella)
+                                cambio(casella, direzione_NW, limite_sinistra, limite_su)
                             }
                         }
-                        if(casella.x != 1 && casella.y != 8){
-                            controlloCambioSW(casella,casella)
+                        if(casella.x != limite_sinistra && casella.y != limite_giù){
+                            controlloCambio(casella, casella, direzione_SW, limite_sinistra, limite_giù)
                             if(controllo == true){
-                                cambioSW(casella)
+                                cambio(casella, direzione_SW, limite_sinistra, limite_giù)
                             }
                         }  
                     }
-                    for(let casella of caselle){
+                    for(let casella of caselle){ //rimuovo i quadratini di questo turno prima di aggiungere i nuovi
                         let yx = casella.yx
                         if(casella.inside == null){
-                            document.getElementById(yx).innerHTML = ""
+                            //document.getElementById(yx).innerHTML = ""
+                            document.getElementById(yx).getElementsByClassName('wrapper')[0].innerHTML = ""
+                        
                         }
                     }
                     cambiaTurno()
@@ -780,43 +814,43 @@
                     if(casella_sopra != 0){
                         caselle_riempibili.push(casella_sopra)
                         let yx = casella_sopra.yx
-                        document.getElementById(yx).innerHTML = '<div class = quadratino></div>'
+                        document.getElementById(yx).innerHTML = '<div class="wrapper"><div class="quadratino"></div></div>'
                     }
 
                     if(casella_sotto != 0){
                         caselle_riempibili.push(casella_sotto)
                         let yx = casella_sotto.yx
-                        document.getElementById(yx).innerHTML = '<div class = quadratino></div>'
+                        document.getElementById(yx).innerHTML = '<div class="wrapper"><div class="quadratino"></div></div>'
                     }
                     if(casella_destra != 0){
                         caselle_riempibili.push(casella_destra)
                         let yx = casella_destra.yx
-                        document.getElementById(yx).innerHTML = '<div class = quadratino></div>'
+                        document.getElementById(yx).innerHTML = '<div class="wrapper"><div class="quadratino"></div></div>'
                     }
                     if(casella_sinistra != 0){
                         caselle_riempibili.push(casella_sinistra)
                         let yx = casella_sinistra.yx
-                        document.getElementById(yx).innerHTML = '<div class = quadratino></div>'
+                        document.getElementById(yx).innerHTML = '<div class="wrapper"><div class="quadratino"></div></div>'
                     }
                     if(casella_NE != 0){
                         caselle_riempibili.push(casella_NE)
                         let yx = casella_NE.yx
-                        document.getElementById(yx).innerHTML = '<div class = quadratino></div>'
+                        document.getElementById(yx).innerHTML = '<div class="wrapper"><div class="quadratino"></div></div>'
                     }
                     if(casella_NW != 0){
                         caselle_riempibili.push(casella_NW)
                         let yx = casella_NW.yx
-                        document.getElementById(yx).innerHTML = '<div class = quadratino></div>'
+                        document.getElementById(yx).innerHTML = '<div class="wrapper"><div class="quadratino"></div></div>'
                     }
                     if(casella_SE != 0){
                         caselle_riempibili.push(casella_SE)
                         let yx = casella_SE.yx
-                        document.getElementById(yx).innerHTML = '<div class = quadratino></div>'
+                        document.getElementById(yx).innerHTML = '<div class="wrapper"><div class="quadratino"></div></div>'
                     }
                     if(casella_SW != 0){
                         caselle_riempibili.push(casella_SW)
                         let yx = casella_SW.yx
-                        document.getElementById(yx).innerHTML = '<div class = quadratino></div>'
+                        document.getElementById(yx).innerHTML = '<div class="wrapper"><div class="quadratino"></div></div>'
                     }
                 }
                 //console.log(caselle_riempibili)
@@ -829,7 +863,7 @@
                     //es. il bianco ha appena aggiunto una pedina, si cambia il turno ma il nero non
                     //ha mosse disponibili, il turno ritorna al bianco
                     cambiaTurno()  
-                    contatore += 1
+                    contatore += 1//il contatore mi serve nel caso in cui la partita finisca prima di raggiungere le 64 mosse
                     if(contapedineblack + contapedinewhite == 64 || contatore == 5){
                         giàRicontrollato = true
                         vittoria()
@@ -839,21 +873,48 @@
                 caselle_riempibili = []
             }
 
-            const ricarica = () => {
-                window.location.reload()
-            }
-            const ricarica_con_ritardo = () =>{
-                setTimeout(ricarica, 100)
+            const ricarica = () =>{
+                //setTimeout(ricarica, 100)
+                $("#board").fadeTo(500, 0, function(){ // 500ms, 0 significa che scompare completamente
+                    //svuoto le caselle "virtuali"
+                    for(casella of caselle){ 
+                        casella.inside = null
+                    }
+                    //rimetto il turno iniziale
+                    turno = "black"
+
+                    //svuoto elenco mosse
+                    elenco_mosse = []
+
+                    //svuoto il div con l'apertura
+                    document.getElementById("tipo_apertura").innerHTML = ""
+
+                    //svuoto la scacchiera di tutti i div
+                    document.getElementById("board").innerHTML = ""
+
+                    //rigenero la scacchiera da 0
+                    generaScacchiera()
+
+                    //svuoto la textarea
+                    textarea.innerHTML = ""
+                }).fadeTo(500,1)
+                
             }
         </script>
     </head>
     <body onload="generaScacchiera();"> 
-        <div id="outer-board" style="width: 698px; height: 698px; background-color: #63462D; border-color: transparent">
-            <div id="board" style="width: 560px; height: 560px; position: relative; left: 70px; top: 70px;"></div>
+        <div id="left-col">
+            <div id="contapedinewhite" class="white">2</div>
+            <div id="contapedineblack" class="black">2</div>
+            <div id="nuova_partita" onclick="ricarica();"></div>
+            <textarea id="textarea"></textarea>
+            <div id="apertura">
+                <div id="titolo">APERTURA</div>
+                <div id="tipo_apertura"></div>
+            </div>
         </div>
-        <div class = 'white pedina' style = 'left:30px' id="contapedinewhite">2</div>
-        <div class = 'black pedina' style = 'left:60px' id="contapedineblack">2</div>
-        <div id = "nuova_partita" onclick="ricarica_con_ritardo();"></div>
-        <textarea id = "textarea"></textarea>
+        <div id="outer-board">
+            <div id="board"></div>
+        </div>
     </body>
 </html>
