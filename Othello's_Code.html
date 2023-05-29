@@ -1,4 +1,3 @@
-
 <html>
     <head>
         <style>
@@ -34,6 +33,12 @@
                 background-color: #627c35;
                 float: left;
             }
+
+            .wrapper {
+                border: 1px solid black;
+                height:100%;
+            }
+
             .pedina {
                 position: relative;
                 left: 5%;
@@ -58,10 +63,6 @@
             .white {
                 background-color: #f7f2dc;
                 color: black
-            }
-            .wrapper {
-                border: 1px solid black;
-                height:100%;
             }
 
             #contapedinewhite, #contapedineblack {
@@ -106,22 +107,26 @@
                 font-weight: bold;
             }
         </style>
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js">
+            //aggiungo la libreria jquery per mettere gli effetti fadeTo
+        </script> 
         <script>
-            class Casella {
-                constructor(yx, y, x) {
-                    this.inside = null
-                    this.yx = yx
-                    this.y = y
-                    this.x = x
+            class Casella { //es. Casella {inside: 'white', yx: 44, y: 4, x: 4}
+                constructor(yx, y, x) { //yx, y, x sono i parametri necessari alla creazione delle caselle
+                    this.inside = null //interno della casella già prestabilito
+                    this.yx = yx 
+                    this.y = y 
+                    this.x = x 
                 }
             }
-            const limite_sinistra = 1
-            const limite_destra = 8
-            const limite_su = 1
-            const limite_giù = 8
-            const nessun_limite = undefined
 
+            const limite_sinistra = 1 //x=1
+            const limite_destra = 8 //x=8
+            const limite_su = 1 //y=1
+            const limite_giù = 8 //y=8
+            const nessun_limite = undefined //serve successivamente per impostare delle condizioni nelle funzioni
+
+            //movimenti lungo x e y per trovare le caselle vicine ad una scelta
             const direzione_sopra = -10
             const direzione_sotto = +10
             const direzione_destra = +1
@@ -131,15 +136,7 @@
             const direzione_SW = +9
             const direzione_SE = +11
 
-            const diagonal_opening = ["b34", "w33"]
-            const diagonal_opening_plus = ["b34", "w33", "b43"]
-            const diagonal_opening_plus_plus = ["b34", "w33", "b43", "w35"]
-            const Tobidashi = ["b34", "w33", "b43", "w35", "b24"]
-            const Tobidashi_plus = ["b34", "w33", "b43", "w35", "b24", "w42"]
-            const Heath_Bat = ["b34", "w33", "b43", "w35", "b24", "w42", "b46"]
-            const Heath_Chimney = ["b34", "w33", "b43", "w35", "b24", "w53"]
-            const Iwasaki_variation = ["b34", "w33", "b43", "w35", "b24", "w42", "b52"]
-
+            //dictionary delle aperture
             const openings = {
                 "Diagonal opening": ["b43", "w33"],
                 "Diagonal opening +": ["b43", "w33", "b34"],
@@ -233,33 +230,40 @@
                 // Aggiungere altre aperture qui...
               };
 
-            let elenco_mosse = []
-            let caselle = []
-            let turno = 'black'
+            let elenco_mosse = [] //serve per le aperture
+            let caselle = [] //lista a cui verranno aggiunte tutte le caselle "virtuali"
+            let turno = 'black' 
             let contapedinewhite = 2 //conta le caselle bianche
             let contapedineblack = 2 //conta le pedine nere
+
+            //creazione delle caselle "virtuali"
             for(let i=0; i<=63; i++) {
-                let x = i % 8 +1; 
+                let x = (i % 8) + 1; //la x e la y partono da 1 in modo da evitare caselle dal nome del tipo casella03
                 let y = Math.floor(i / 8) + 1;
                 //console.log(x, y)
 
-                // globalThis["casella"+ yx] = new Casella(yx, y, x)
-                // caselle.push("casella"+ yx)
-
                 let yx = String(y)+String(x);
+
+                    //eval permette di trasformare una stringa in qualcosa di eseguibile 
+                    //utilità --> si riesce a chiamare le caselle con nomi del tipo casella11, casella12, ecc.
                     eval('var casella' + yx + '= new Casella('+ yx +', '+y+', '+x+');')
                     eval('caselle.push(casella'+yx+')')
                 }
             const generaScacchiera = () => {
                 for(let i=0; i<=63; i++) {
-                    let x = i % 8 +1; 
+                    let x = (i % 8) +1; 
                     let y = Math.floor(i / 8) + 1;
-                    //console.log(x, y)
 
                     let yx = String(y)+String(x);
+                    //aggiungo le caselle all'interfaccia grafica
+
                     document.getElementById("board").innerHTML += '<div id = "' + yx + '" class="square" onclick="aggiungiPedina('+ yx +',casella'+ yx +')"><div class="wrapper"></div></div>';
                     
                 }
+                //posizionamento delle 4 pedine iniziali
+                //<div id = "44" class = "square" ...">  <div class = 'white pedina'></div> <div class="wrapper">    </div>  </div>
+                //bisogna inserire le pedine all'interno dei div con class wrapper
+                //per prendere questi div si usa getElementsByClassName che restituisce una lista di cui prendo il primo ed in questo caso unico elemento
                 document.getElementById("44").getElementsByClassName('wrapper')[0].innerHTML += "<div class = 'white pedina'></div>"
                 casella44.inside = "white"
                 document.getElementById("45").getElementsByClassName('wrapper')[0].innerHTML += "<div class = 'black pedina'></div>"
@@ -290,14 +294,18 @@
             }
 
             const cercaAperture = (mosse) => {
-                let lista_tampone = mosse.slice() //creo una copia per non cambiare la lista elenco_mosse
-                for(let opening in openings){ //scorro le varie aperture
+                let lista_tampone = mosse.slice() //creo una copia per non modificare la lista elenco_mosse
+                for(let opening in openings){ //scorro le varie chiavi del dizionario
+
                     //console.log(opening + " > " + openings[opening], lista_tampone)
                     //console.log(openings[opening] + "  " + lista_tampone)
                     //console.log(lista_tampone, lista_tampone.join(''), openings[opening].join(''), lista_tampone.join('') == openings[opening].join(''))
 
                     //controllo che queste 2 liste siano composte da elementi uguali
-                    if( openings[opening].length === lista_tampone.length &&
+                    //openings[opening] restituisce il valore corrispondente alla chiave opening
+
+                    //controllare sta cosa
+                    if(openings[opening].length === lista_tampone.length &&
                         lista_tampone.join('') == openings[opening].join('')
                         //openings[opening].every((value, index) => value === lista_tampone[index])
                     ){  
@@ -334,27 +342,27 @@
             //la variabile controllo parte già col valore false
             let controllo = false
 
-            //controllo cambio serve per controllare che io possa effettivamente cambiare le pedine lungo la direzione desiderata
+            //controllo cambio serve per controllare che si possa effettivamente cambiare le pedine lungo la direzione desiderata
             //una volta controllate tutte le condizioni necessarie al cambio si darà un valore true o false ad una variabile di controllo
-            //se la variabile è true chiamo la funzione cambio per quella direzione, se false non cambio le pedine
+            //se la variabile è true viene chiamata la funzione cambio per quella direzione, se false non vengono cambiate le pedine
 
-            //per rendere true la variabile controllo io devo trovare una sequenza di caselle di un determinato colore
-            //circondate da 2 caselle del colore opposto(una di queste 2 caselle è quella che ho appena messo col mouse)
-            //la sequenza di caselle poi diventerà del colore delle 2 esterne con la funzione cambio
+            //per rendere true la variabile bisogna controllare che una sequenza di pedine di un determinato colore sia
+            //compresa da 2 pedine del colore opposto(una di queste 2 pedine è quella che ho appena aggiunto col mouse)
+            //la sequenza di pedine poi diventerà del colore delle 2 esterne con la funzione cambio
 
             const controlloCambio = (casella, casella_iniziale, direzione, limite_x, limite_y) => {
-                //quando chiamo per la prima volta la funzione casella e casella iniziale coincidono
+                //quando viene chiamata per la prima volta la variabile casella e casella iniziale coincidono e sono la casella appena premuta
                 //però essendo una funzione ricorsiva casella cambierà mentre casella iniziale rimane sempre la stessa
 
-                let yx_vicino = casella.yx + direzione // es. 54(yx_vicino) = 44(casella.yx) + 10(direzione_destra)
+                let yx_vicino = casella.yx + direzione // es. 54(yx_vicino) = 44(casella.yx) + 10(direzione_sotto)
 
-                //se la x o la y del parametro casella raggiungono il limite massimo dovuto alla direzione
-                //viene dato il valore false alla variabile di controllo
+                //se la x o la y della variabile casella raggiungono il limite massimo dovuto alla direzione
+                //viene dato il valore false alla variabile di controllo e quindi non si cambia lungo la direzione
                 if(casella.x == limite_x || casella.y == limite_y){
                     controllo = false //non cambio colore alle pedine
                     return false // mi serve per interrompere l'esecuzione
                 }
-                let casella_vicina = eval("casella" + yx_vicino) //es. casella54 = "casella" + 54
+                let casella_vicina = eval("casella" + yx_vicino) //es. casella54 = ("casella" + 54)
 
                 //se la casella vicina ha come colore lo stesso della iniziale controllo = true
                 //N.B casella vicina può anche essere lontana da casella iniziale essendo una funzione ricorsiva
@@ -373,7 +381,6 @@
 
                 //se l'interno di casella_vicina è vuoto allora non potrò mai avere una sequenza di caselle circondata da 2
                 //del colore opposto
-                //
                 else{
                     controllo = false
                 }
@@ -383,15 +390,11 @@
                     let yx_vicino = casella.yx+direzione
                     let casella_vicina = eval('casella'+ yx_vicino)
                     //console.log(casella_vicina)
+                    //si trova una sequenza di pedine del colore opposto e si cambia 
                     if(casella_vicina.inside != casella.inside && casella_vicina.inside != null){
                         casella_vicina.inside = casella.inside
                         document.getElementById(yx_vicino).getElementsByClassName('wrapper')[0].innerHTML = cambioColore();
-                        try {
-                            $("#"+ String(casella_vicina.yx)+" .pedina").fadeTo(500, 0.3).fadeTo(500, 1)
-                        }
-                        catch(e) {
-                            console.error(e);
-                        }
+                        $("#"+ String(casella_vicina.yx)+" .pedina").fadeTo(500, 0.3).fadeTo(500, 1);
                         //document.getElementById(yx_vicino).innerHTML = cambioColore();
                         //console.log(cambioColore())
                         cambio(casella_vicina, direzione, limite_x, limite_y);
@@ -399,12 +402,16 @@
                 }
             }
             const aggiungiPedina = (yx, casella) => {
-                //console.log(document.getElementById(yx).innerHTML)
+                //console.log(document.getElementById(yx).innerHTML
+                //con questo if si controlla se la casella su cui premo ha al suo interno un quadratino
+                //le caselle coi quadratini hanno inside == null e un div "quadratino" al loro interno
                 if(document.getElementById(yx).getElementsByClassName('wrapper')[0].innerHTML != "" && casella.inside == null){
                     if(turno == 'white'){
+                        //viene aggiunta la mossa all'elenco
                         elenco_mosse.push("w"+yx)
                         cercaAperture(elenco_mosse)
                         //document.getElementById(yx).innerHTML = "<div class = 'white pedina'></div>"
+                        //viene sostituito il quadratino con una pedina bianca
                         document.getElementById(yx).getElementsByClassName('wrapper')[0].innerHTML = "<div class = 'white pedina'></div>"
                         casella.inside = "white"
 
@@ -415,18 +422,21 @@
                                 cambio(casella, direzione_destra, limite_destra, nessun_limite)
                             }
                         }
+                        //sinistra
                         if(casella.x != limite_sinistra){
                             controlloCambio(casella, casella, direzione_sinistra, limite_sinistra, nessun_limite)
                             if(controllo == true){
                                 cambio(casella, direzione_sinistra, limite_sinistra, nessun_limite)
                             }
                         }
+                        //NE
                         if(casella.x != limite_destra && casella.y != limite_su){
                             controlloCambio(casella, casella, direzione_NE, limite_destra, limite_su)
                             if(controllo == true){
                                 cambio(casella, direzione_NE, limite_destra, limite_su)
                             }
                         }
+                        //ecc.
                         if(casella.x != limite_destra && casella.y != limite_giù){
                             controlloCambio(casella, casella, direzione_SE, limite_destra, limite_giù)
                             if(controllo == true){
@@ -539,251 +549,32 @@
                     document.getElementById("textarea").innerHTML += "la partita è finita in pareggio"
                 }
             }
-
-            const controllaSopra = (casella, yx, giaChiamato = false) => {
-                let yx_sopra = yx-10 //es. casella.yx = 46 --> yx_sopra = 36
-                if (casella.y == 1){ //se la casella è nella prima riga return 0
+            
+            const controlla = (casella, yx, direzione, limite_x, limite_y, giaChiamato = false) => {
+                let yx_vicino = yx + direzione
+                if (casella.y == limite_y || casella.x == limite_x){
                     //console.log(0)
                     return 0
                 }
-                let casella_sopra = eval('casella'+yx_sopra) //es. casella_sopra = casella36
-                //console.log(casella_sopra)
-                if(giaChiamato){ //quando la funzione viene richiamata almeno una volta
-                    if (casella_sopra.inside == null){
-                        //console.log(casella_sopra)
-                        return casella_sopra
-                    }
-                    else if (casella_sopra.inside == casella.inside){
-                        return controllaSopra(casella_sopra, yx_sopra, true)
-                    }
-                    else if (casella_sopra.inside != casella.inside){
-                        return 0
-                    }
-                }
-                else{ //solo al primo giro della funzione
-                    //console.log(casella_sopra.inside, casella.inside)
-
-                    //controllo che la casella sopra abbia il colore opposto a casella
-                    if ((casella_sopra.inside != null) && (casella_sopra.inside != casella.inside)){ 
-                        return controllaSopra(casella_sopra, yx_sopra, true) 
-                        //richiamo la funzione con giàchiamato = true
-                    }
-                    else{
-                        return 0
-                    }
-                }
-            }
-            const controllaSotto = (casella, yx, giaChiamato = false) => {
-                let yx_sotto = yx+10
-                if (casella.y == 8){
-                    //console.log(0)
-                    return 0
-                }
-                let casella_sotto = eval('casella'+yx_sotto)
-                //console.log(casella_sotto)
+                let casella_vicino = eval('casella'+yx_vicino)
+                //console.log(casella_vicino)
                 if(giaChiamato){
-                    if (casella_sotto.inside == null){
-                        //console.log(casella_sotto)
-                        return casella_sotto
+                    if (casella_vicino.inside == null){
+                        //console.log(casella_vicino)
+                        return casella_vicino
                     }
-                    else if (casella_sotto.inside == casella.inside){
-                        return controllaSotto(casella_sotto, yx_sotto, true)
+                    else if (casella_vicino.inside == casella.inside){
+                        return controlla(casella_vicino, yx_vicino, direzione, limite_x, limite_y, true)
                     }
-                    else if (casella_sotto.inside != casella.inside){
+                    else if (casella_vicino.inside != casella.inside){
                         return 0
                     }
                 }
                 else{
-                    //console.log(casella_sotto.inside, casella.inside)
-                    if ((casella_sotto.inside != null) && (casella_sotto.inside != casella.inside)){
+                    //console.log(casella_vicino.inside, casella.inside)
+                    if ((casella_vicino.inside != null) && (casella_vicino.inside != casella.inside)){
                         //console.log("sono qui")
-                        return controllaSotto(casella_sotto, yx_sotto, true)
-                    }
-                    else{
-                        return 0
-                    }
-                }
-            }
-            const controllaDestra = (casella, yx, giaChiamato = false) => {
-                let yx_destra = yx+1
-                if (casella.x == 8){
-                    //console.log(0)
-                    return 0
-                }
-                let casella_destra = eval('casella'+yx_destra)
-                //console.log(casella_destra)
-                if(giaChiamato){
-                    if (casella_destra.inside == null){
-                        //console.log(casella_destra)
-                        return casella_destra
-                    }
-                    else if (casella_destra.inside == casella.inside){
-                        return controllaDestra(casella_destra, yx_destra, true)
-                    }
-                    else if (casella_destra.inside != casella.inside){
-                        return 0
-                    }
-                }
-                else{
-                    //console.log(casella_destra.inside, casella.inside)
-                    if ((casella_destra.inside != null) && (casella_destra.inside != casella.inside)){
-                        //console.log("sono qui")
-                        return controllaDestra(casella_destra, yx_destra, true)
-                    }
-                    else{
-                        return 0
-                    }
-                }
-            }
-            const controllaSinistra = (casella, yx, giaChiamato = false) => {
-                let yx_sinistra = yx-1
-                if (casella.x == 1){
-                    //console.log(0)
-                    return 0
-                }
-                let casella_sinistra = eval('casella'+yx_sinistra)
-                //console.log(casella_sinistra)
-                if(giaChiamato){
-                    if (casella_sinistra.inside == null){
-                        //console.log(casella_sinistra)
-                        return casella_sinistra
-                    }
-                    else if (casella_sinistra.inside == casella.inside){
-                        return controllaSinistra(casella_sinistra, yx_sinistra, true)
-                    }
-                    else if (casella_sinistra.inside != casella.inside){
-                        return 0
-                    }
-                }
-                else{
-                    //console.log(casella_sinistra.inside, casella.inside)
-                    if ((casella_sinistra.inside != null) && (casella_sinistra.inside != casella.inside)){
-                        //console.log("sono qui")
-                        return controllaSinistra(casella_sinistra, yx_sinistra, true)
-                    }
-                    else{
-                        return 0
-                    }
-                }
-            }
-            const controllaNE = (casella, yx, giaChiamato = false) => {
-                let yx_NE = yx-9
-                if (casella.y == 1 || casella.x == 8){
-                    //console.log(0)
-                    return 0
-                }
-                let casella_NE = eval('casella'+yx_NE)
-                //console.log(casella_NE)
-                if(giaChiamato){
-                    if (casella_NE.inside == null){
-                        //console.log(casella_NE)
-                        return casella_NE
-                    }
-                    else if (casella_NE.inside == casella.inside){
-                        return controllaNE(casella_NE, yx_NE, true)
-                    }
-                    else if (casella_NE.inside != casella.inside){
-                        return 0
-                    }
-                }
-                else{
-                    //console.log(casella_NE.inside, casella.inside)
-                    if ((casella_NE.inside != null) && (casella_NE.inside != casella.inside)){
-                        //console.log("sono qui")
-                        return controllaNE(casella_NE, yx_NE, true)
-                    }
-                    else{
-                        return 0
-                    }
-                }
-            }
-            const controllaNW = (casella, yx, giaChiamato = false) => {
-                let yx_NW = yx-11
-                if (casella.y == 1 || casella.x == 1){
-                    //console.log(0)
-                    return 0
-                }
-                let casella_NW = eval('casella'+yx_NW)
-                //console.log(casella_NW)
-                if(giaChiamato){
-                    if (casella_NW.inside == null){
-                        //console.log(casella_NW)
-                        return casella_NW
-                    }
-                    else if (casella_NW.inside == casella.inside){
-                        return controllaNW(casella_NW, yx_NW, true)
-                    }
-                    else if (casella_NW.inside != casella.inside){
-                        return 0
-                    }
-                }
-                else{
-                    //console.log(casella_NW.inside, casella.inside)
-                    if ((casella_NW.inside != null) && (casella_NW.inside != casella.inside)){
-                        //console.log("sono qui")
-                        return controllaNW(casella_NW, yx_NW, true)
-                    }
-                    else{
-                        return 0
-                    }
-                }
-            }
-            const controllaSW = (casella, yx, giaChiamato = false) => {
-                let yx_SW = yx+9
-                if (casella.y == 8 || casella.x == 1){
-                    //console.log(0)
-                    return 0
-                }
-                let casella_SW = eval('casella'+yx_SW)
-                //console.log(casella_SW)
-                if(giaChiamato){
-                    if (casella_SW.inside == null){
-                        //console.log(casella_SW)
-                        return casella_SW
-                    }
-                    else if (casella_SW.inside == casella.inside){
-                        return controllaSW(casella_SW, yx_SW, true)
-                    }
-                    else if (casella_SW.inside != casella.inside){
-                        return 0
-                    }
-                }
-                else{
-                    //console.log(casella_SW.inside, casella.inside)
-                    if ((casella_SW.inside != null) && (casella_SW.inside != casella.inside)){
-                        //console.log("sono qui")
-                        return controllaSW(casella_SW, yx_SW, true)
-                    }
-                    else{
-                        return 0
-                    }
-                }
-            }
-            const controllaSE = (casella, yx, giaChiamato = false) => {
-                let yx_SE = yx+11
-                if (casella.y == 8 || casella.x == 8){
-                    //console.log(0)
-                    return 0
-                }
-                let casella_SE = eval('casella'+yx_SE)
-                //console.log(casella_SE)
-                if(giaChiamato){
-                    if (casella_SE.inside == null){
-                        //console.log(casella_SE)
-                        return casella_SE
-                    }
-                    else if (casella_SE.inside == casella.inside){
-                        return controllaSE(casella_SE, yx_SE, true)
-                    }
-                    else if (casella_SE.inside != casella.inside){
-                        return 0
-                    }
-                }
-                else{
-                    //console.log(casella_SE.inside, casella.inside)
-                    if ((casella_SE.inside != null) && (casella_SE.inside != casella.inside)){
-                        //console.log("sono qui")
-                        return controllaSE(casella_SE, yx_SE, true)
+                        return controlla(casella_vicino, yx_vicino, direzione, limite_x, limite_y, true)
                     }
                     else{
                         return 0
@@ -798,18 +589,18 @@
                     // console.log("sono qui")
                     // console.log(casella)
 
-                    if(casella.inside != turno){ // devo trovare le caselle che abbiano l'attributo inside = turno
+                    if(casella.inside != turno){ // bisogna trovare le caselle che abbiano l'attributo inside = turno
                         continue
                     }
                     //console.log(casella)
-                    let casella_sopra = controllaSopra(casella, casella.yx)
-                    let casella_sotto = controllaSotto(casella, casella.yx)
-                    let casella_destra = controllaDestra(casella, casella.yx)
-                    let casella_sinistra = controllaSinistra(casella, casella.yx)
-                    let casella_NE = controllaNE(casella, casella.yx)
-                    let casella_NW = controllaNW(casella, casella.yx)
-                    let casella_SE = controllaSE(casella, casella.yx)
-                    let casella_SW = controllaSW(casella, casella.yx)
+                    let casella_sopra = controlla(casella, casella.yx, direzione_sopra, nessun_limite, limite_su)
+                    let casella_sotto = controlla(casella, casella.yx, direzione_sotto, nessun_limite, limite_giù)
+                    let casella_destra = controlla(casella, casella.yx, direzione_destra, limite_destra, nessun_limite)
+                    let casella_sinistra = controlla(casella, casella.yx, direzione_sinistra, limite_sinistra, nessun_limite)
+                    let casella_NE = controlla(casella, casella.yx, direzione_NE, limite_destra, limite_su)
+                    let casella_NW = controlla(casella, casella.yx, direzione_NW, limite_sinistra, limite_su)
+                    let casella_SE = controlla(casella, casella.yx, direzione_SE, limite_destra, limite_giù)
+                    let casella_SW = controlla(casella, casella.yx, direzione_SW, limite_sinistra, limite_giù)
 
                     if(casella_sopra != 0){
                         caselle_riempibili.push(casella_sopra)
@@ -914,7 +705,8 @@
             </div>
         </div>
         <div id="outer-board">
-            <div id="board"></div>
+            <div id="board">
+            </div>
         </div>
     </body>
 </html>
