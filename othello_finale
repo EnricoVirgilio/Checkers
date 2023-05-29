@@ -1,0 +1,611 @@
+<html>
+    <head>
+        <link rel = "stylesheet" type = "text/css" href = "othelloCSS.css"/>
+        <title>OTHELLO</title>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js">
+            //aggiungo la libreria jquery per mettere gli effetti fadeTo
+        </script> 
+        <script>
+            class Casella { //es. Casella {inside: 'white', yx: 44, y: 4, x: 4}
+                constructor(yx, y, x) { //yx, y, x sono i parametri necessari alla creazione delle caselle
+                    this.inside = null //interno della casella già prestabilito
+                    this.yx = yx 
+                    this.y = y 
+                    this.x = x 
+                }
+            }
+
+            const limite_sinistra = 1 //x=1
+            const limite_destra = 8 //x=8
+            const limite_su = 1 //y=1
+            const limite_giù = 8 //y=8
+            const nessun_limite = undefined //serve successivamente per impostare delle condizioni nelle funzioni
+
+            //movimenti lungo x e y per trovare le caselle vicine ad una scelta
+            const direzione_sopra = -10
+            const direzione_sotto = +10
+            const direzione_destra = +1
+            const direzione_sinistra = -1
+            const direzione_NW = -11
+            const direzione_NE = -9
+            const direzione_SW = +9
+            const direzione_SE = +11
+
+            //dictionary delle aperture
+            const openings = {
+                "Diagonal opening": ["b43", "w33"],
+                "Diagonal opening +": ["b43", "w33", "b34"],
+                "Diagonal opening ++": ["b43", "w33", "b34", "w53"],
+                "Tobidashi": ["b43", "w33", "b34", "w53", "b42"],
+                "Tobidashi +": ["b43", "w33", "b34", "w53", "b42", "w24"],
+                "Heath_Bat": ["b43", "w33", "b34", "w53", "b42", "w24", "b64"],
+                "Heath_Chimney": ["b43", "w33", "b34", "w53", "b42", "w35"],
+                "Iwasaki_variation": ["b43", "w33", "b34", "w53", "b42", "w24", "b25"],
+                "Cow": ["b43", "w33", "b34", "w53", "b64"],
+                "Chimney": ["b43", "w33", "b34", "w53", "b64", "w35"],
+                "Cow +": ["b43", "w33", "b34", "w53", "b64", "w46"],
+                "Rose-v-Toth": ["b43", "w33", "b34", "w53", "b64", "w46", "b56"],
+                "Tanida": ["b43", "w33", "b34", "w53", "b64", "w46", "b56", "w24"],
+                "Aircraft/Feldborg": ["b43", "w33", "b34", "w53", "b64", "w46", "b56", "w24", "b52"],
+                "Cow Bat/Bat/Cabridge": ["b43", "w33", "b34", "w53", "b64", "w46", "b42"],
+                "Parallel Opening": ["b43", "w53"],
+                "Parallel Opening +": ["b43", "w53", "b64"],
+                "Perpendicular Opening": ["b43", "w35"],
+                "Perpendicular Opening + (1)": ["b43", "w35", "b56"],
+                "Ganglion/No-Cat": ["b43", "w35", "b56", "w42"],
+                "Swallow": ["b43", "w35", "b56", "w42", "b36"],
+                "Perpendicular Opening + (2)": ["b43", "w35", "b66"],
+                "Bent Ganglion": ["b43", "w35", "b66", "w42"],
+                "Perpendicular Opening ++": ["b43", "w35", "b66", "w65"],
+                "Tiger": ["b43", "w35", "b66", "w65", "b56"],
+                "Aubrey/Tanaka": ["b43", "w35", "b66", "w65", "b56", "w67"],
+                "Tiger +": ["b43", "w35", "b66", "w65", "b56", "w53"],
+                "Tiger ++": ["b43", "w35", "b66", "w65", "b56", "w53", "b46"],
+                "Tiger +++": ["b43", "w35", "b66", "w65", "b56", "w53", "b46", "w67"],
+                "Rose-Bill": ["b43", "w35", "b66", "w65", "b56", "w53", "b46", "w67", "b76"],
+                "Tamenori": ["b43", "w35", "b66", "w65", "b56", "w53", "b46", "w67", "b76", "w34"],
+                "Rose-Bill +": ["b43", "w35", "b66", "w65", "b56", "w53", "b46", "w67", "b76", "w64"],
+                "Central Rose-Bill/Dead Draw": ["b43", "w35", "b66", "w65", "b56", "w53", "b46", "w67", "b76", "w57"],
+                "X-square Opening": ["b43", "w33", "b34", "w53", "b22"],
+                "Snake/Peasant": ["b43", "w33", "b34", "w53", "b32"],
+                "Lysons": ["b43", "w33", "b34", "w53", "b32", "w36"],
+                "Pyramid/Checkerboarding Peasant": ["b43", "w33", "b34", "w53", "b32", "w46", "b52", "w42", "b63", "w64", "b56"],
+                "Mimura Variation II": ["b43", "w33", "b34", "w53", "b42", "w24", "b23", "w46", "b64", "w63", "b56", "w65", "b76"],
+                "Raccoon Dog": ["b43", "w33", "b34", "w53", "b52"],
+                "Rocket": ["b43", "w33", "b34", "w53", "b62"],
+                "Hamilton": ["b43", "w33", "b34", "w53", "b62", "w63", " b52"],
+                "Lollipop": ["b43", "w33", "b34", "w53", "b62", "w35"],
+                "Sailboat": ["b43", "w33", "b34", "w53", "b64", "w46", "b56", "w24", "b46", "w74"],
+                "Maruoka": ["b43", "w33", "b34", "w53", "b64", "w46", "b56", "w65", "b63", "w74"],
+                "Landau": ["b43", "w33", "b34", "w53", "b64", "w46", "b56", "w65", "b66"],
+                "Buffalo/Kenichi Variation": ["b43", "w33", "b34", "w53", "b66"],
+                "Maruoka Buffalo": ["b43", "w33", "b34", "w53", "b66", "w25", "b63"],
+                "Tanida Buffalo": ["b43", "w33", "b34", "w53", "b66", "w35", "b63", "w56", "b46", "w57"],
+                "Hokuriku Bufalo": ["b43", "w33", "b34", "w53", "b66", "w56"],
+                "Wing Variation": ["b43", "w33", "b65", "w53"],
+                "Semi-Wing Variation": ["b43", "w33", "b56", "w53"],
+                "Mimura": ["b43", "w35", "b46", "w53", "b64", "w65"],
+                "Shaman/Danish": ["b43", "w35", "b46", "w53", "b64", "w36", "b63"],
+                "Inoue": ["b43", "w35", "b46", "w53", "b64", "w36", "b34"],
+                "Iago": ["b43", "w35", "b46", "w53", "b64", "w36", "b34", "w33"],
+                "Bhagat": ["b43", "w35", "b46", "w53", "b64", "w36", "b25"],
+                "Rose": ["b43", "w35", "b46", "w53", "b64", "w36", "b65", "w33", "b34", "w25"],
+                "Flat": ["b43", "w35", "b46", "w53", "b64", "w36", "b65", "w33", "b34", "w25", "b52"],
+                "Rotating Flat": ["b43", "w35", "b46", "w53", "b64", "w36", "b65", "w33", "b34", "w25", "b52", "w56"],
+                "Murakami Variation": ["b43", "w35", "b46", "w53", "b64", "w36", "b65", "w33", "b34", "w25", "b52", "w56", "b32"],
+                "Rotating Flat (Kling Continuation)": ["b43", "w35", "b46", "w53", "b64", "w36", "b65", "w33", "b34", "w25", "b52", "w56", "b42", "w66", "b23", "w75", "b24", "w73"],
+                "Rose-Birth": ["b43", "w35", "b46", "w53", "b64", "w36", "b65", "w33", "b34", "w25", "b62", " w56"],
+                "Brightstein": ["b43", "w35", "b46", "w53", "b64", "w36", "b65", "w33", "b34", "w25", "b62", " w56", "b42", "w66", "b57", "w74"],
+                "Rose-Birdie/Rose-Tamenori": ["b43", "w35", "b46", "w53", "b64", "w36", "b65", "w33", "b34", "w25", "b62", " w56", "b57"],
+                "Rose-Tamenori-Kling": ["b43", "w35", "b46", "w53", "b64", "w36", "b65", "w33", "b34", "w25", "b57", "w66"],
+                "Greenberg/Dawg": ["b43", "w35", "b46", "w53", "b64", "w36", "b65", "w33", "b34", "w25", "b24"],
+                "Ralle": ["b43", "w35", "b46", "w53", "b64", "w36", "b65", "w63"],
+                "Horse": ["b43", "w35", "b46", "w53", "b65"], 
+                "Stephenson": ["b43", "w35", "b66", "w65", "b56", "w53", "b33"],
+                "No-Kung": ["b43", "w35", "b66", "w65", "b56", "w53", "b33", "w42"],
+                "No-Kung (Continuation)": ["b43", "w35", "b66", "w65", "b56", "w53", "b33", "w42", "b64", "w63", "b52", "w61", "b62", "w73"],
+                "Comp'Oth": ["b43", "w35", "b66", "w65", "b56", "w53", "b33", "w63"],
+                "F.A.T Draw": ["b43", "w35", "b66", "w65", "b56", "w53", "b33", "w63", "b34", "w24", "b25", "w32", "b13", "w23", "b42", "w31", "b51", "w52", "b61", "w41", "b21"],
+                "Lightning Bolt": ["b43", "w35", "b66", "w65", "b56", "w53", "b33", "w63", "b64"],
+                "Kung": ["b43", "w35", "b66", "w65", "b56", "w53", "b33", "w57"],
+                "Leader's Tiger": ["b43", "w35", "b66", "w65", "b56", "w53", "b34"],
+                "Brightwell": ["b43", "w35", "b66", "w65", "b56", "w53", "b64"],
+                "Ishii": ["b43", "w35", "b66", "w65", "b56", "w53", "b46", "w57", "b47", "w36", "b63", "w34", "b64"],
+                "Mainline Tiger": ["b43", "w35", "b66", "w65", "b56", "w53", "b46", "w57", "b47", "w36", "b63", "w34", "b64", "w32", "b33", "w42", "b25", "w62"],
+                "Aubrey (Feldborg Continuation)": ["b43", "w35", "b66", "w65", "b56", "w67", "b75", "w53"],
+                "No-Cat (Continuation)": ["b43", "w35", "b56", "w42", "b36", "w46", "b25", "w65", "b57", "w66", "b64", "w63"],
+                "Italian": ["b43", "w35", "b56", "w65", "b34"],
+                "Cat": ["b43", "w35", "b56", "w65", "b46"],
+                "Sakaguchi": ["b43", "w35", "b56", "w65", "b46", "w53", "b64", "w63", "b76", "w36"],
+                "Berner": ["b43", "w35", "b56", "w65", "b46", "w53", "b64", "w63", "b76", "w57", "b67"],
+                "Bat (Piau Continuation 2)": ["b43", "w33", "b34", "w53", "b64", "w46", "b42", "w62", "b52", "w63", "w32"],
+                "Melnikov/Bat": ["b43", "w33", "b34", "w53", "b64", "w46", "b42", "w62", "b52", "w63", "b56"],
+                "Bat (Kling Continuation)": ["b43", "w33", "b34", "w53", "b64", "w46", "b42", "w32", "b62", "w35", "b23", "w41", "b51", "w61", "b24"],
+                "Bat (kling Alternative)": ["b43", "w33", "b34", "w53", "b64", "w46", "b42", "w35", "b32"]
+                // Aggiungere altre aperture qui...
+              };
+
+            let elenco_mosse = [] //serve per le aperture
+            let caselle = [] //lista a cui verranno aggiunte tutte le caselle "virtuali"
+            let turno = 'black' 
+            let contapedinewhite = 2 //conta le caselle bianche
+            let contapedineblack = 2 //conta le pedine nere
+
+            //creazione delle caselle "virtuali"
+            for(let i=0; i<=63; i++) {
+                let x = (i % 8) + 1; //la x e la y partono da 1 in modo da evitare caselle dal nome del tipo casella03
+                let y = Math.floor(i / 8) + 1;
+                //console.log(x, y)
+
+                let yx = String(y)+String(x);
+
+                    //eval permette di trasformare una stringa in qualcosa di eseguibile 
+                    //utilità --> si riesce a chiamare le caselle con nomi del tipo casella11, casella12, ecc.
+                    eval('var casella' + yx + '= new Casella('+ yx +', '+y+', '+x+');')
+                    eval('caselle.push(casella'+yx+')')
+                }
+            const generaScacchiera = () => {
+                for(let i=0; i<=63; i++) {
+                    let x = (i % 8) +1; 
+                    let y = Math.floor(i / 8) + 1;
+
+                    let yx = String(y)+String(x);
+                    //aggiungo le caselle all'interfaccia grafica
+
+                    document.getElementById("board").innerHTML += '<div id = "' + yx + '" class="square" onclick="aggiungiPedina('+ yx +',casella'+ yx +')"><div class="wrapper"></div></div>';
+                    
+                }
+                //posizionamento delle 4 pedine iniziali
+                //<div id = "44" class = "square" ...">  <div class = 'white pedina'></div> <div class="wrapper">    </div>  </div>
+                //bisogna inserire le pedine all'interno dei div con class wrapper
+                //per prendere questi div si usa getElementsByClassName che restituisce una lista di cui prendo il primo ed in questo caso unico elemento
+                document.getElementById("44").getElementsByClassName('wrapper')[0].innerHTML += "<div class = 'white pedina'></div>"
+                casella44.inside = "white"
+                document.getElementById("45").getElementsByClassName('wrapper')[0].innerHTML += "<div class = 'black pedina'></div>"
+                casella45.inside = "black"
+                document.getElementById("54").getElementsByClassName('wrapper')[0].innerHTML += "<div class = 'black pedina'></div>"
+                casella54.inside = "black"
+                document.getElementById("55").getElementsByClassName('wrapper')[0].innerHTML += "<div class = 'white pedina'></div>"
+                casella55.inside = "white"
+                cercaMossa()
+            }
+            const visualizzaContoPedine = () => {
+                contapedinewhite = 0
+                contapedineblack = 0
+                for(casella of caselle){
+                    if(casella.inside == "black"){ //conto le caselle nere
+                        contapedineblack += 1
+                    }
+                    else if(casella.inside == "white"){ //conto le caselle bianche
+                        contapedinewhite += 1
+                    }
+                }
+                document.getElementById("contapedinewhite").innerHTML = contapedinewhite
+                document.getElementById("contapedineblack").innerHTML = contapedineblack
+            }
+
+            const mostraApertura = (opening) => {
+                document.getElementById("tipo_apertura").innerHTML = opening
+            }
+
+            const cercaAperture = (mosse) => {
+                let lista_tampone = mosse.slice() //creo una copia per non modificare la lista elenco_mosse
+                for(let opening in openings){ //scorro le varie chiavi del dizionario
+
+                    //console.log(opening + " > " + openings[opening], lista_tampone)
+                    //console.log(openings[opening] + "  " + lista_tampone)
+                    //console.log(lista_tampone, lista_tampone.join(''), openings[opening].join(''), lista_tampone.join('') == openings[opening].join(''))
+
+                    //controllo che queste 2 liste siano composte da elementi uguali
+                    //openings[opening] restituisce il valore corrispondente alla chiave opening
+
+                    //controllare sta cosa
+                    if(openings[opening].length === lista_tampone.length &&
+                        lista_tampone.join('') == openings[opening].join('')
+                        //openings[opening].every((value, index) => value === lista_tampone[index])
+                    ){  
+                        //se trovo una apertura corrispondente alla lista tampone la mostro
+                        mostraApertura(opening)
+                        return
+                    }
+                    else if(lista_tampone.length == 0){
+                        mostraApertura("Nessuna apertura conosciuta")
+                        return
+                    }
+                }
+                lista_tampone.pop()
+                cercaAperture(lista_tampone)
+            }
+
+            const cambiaTurno = () => {
+                if(turno == 'white'){
+                    turno = 'black'
+                }
+                else{
+                    turno = 'white'
+                }
+            }
+            const cambioColore = () => {
+                if(turno == "white"){
+                   return "<div class = 'white pedina'></div>"
+                }
+                else{
+                    return "<div class = 'black pedina'></div>"
+                }
+            }
+
+            //la variabile controllo parte già col valore false
+            let controllo = false
+
+            //controllo cambio serve per controllare che si possa effettivamente cambiare le pedine lungo la direzione desiderata
+            //una volta controllate tutte le condizioni necessarie al cambio si darà un valore true o false ad una variabile di controllo
+            //se la variabile è true viene chiamata la funzione cambio per quella direzione, se false non vengono cambiate le pedine
+
+            //per rendere true la variabile bisogna controllare che una sequenza di pedine di un determinato colore sia
+            //compresa da 2 pedine del colore opposto(una di queste 2 pedine è quella che ho appena aggiunto col mouse)
+            //la sequenza di pedine poi diventerà del colore delle 2 esterne con la funzione cambio
+
+            const controlloCambio = (casella, casella_iniziale, direzione, limite_x, limite_y) => {
+                //quando viene chiamata per la prima volta la variabile casella e casella iniziale coincidono e sono la casella appena premuta
+                //però essendo una funzione ricorsiva casella cambierà mentre casella iniziale rimane sempre la stessa
+
+                let yx_vicino = casella.yx + direzione // es. 54(yx_vicino) = 44(casella.yx) + 10(direzione_sotto)
+
+                //se la x o la y della variabile casella raggiungono il limite massimo dovuto alla direzione
+                //viene dato il valore false alla variabile di controllo e quindi non si cambia lungo la direzione
+                if(casella.x == limite_x || casella.y == limite_y){
+                    controllo = false //non cambio colore alle pedine
+                    return false // mi serve per interrompere l'esecuzione
+                }
+                let casella_vicina = eval("casella" + yx_vicino) //es. casella54 = ("casella" + 54)
+
+                //se la casella vicina ha come colore lo stesso della iniziale controllo = true
+                //N.B casella vicina può anche essere lontana da casella iniziale essendo una funzione ricorsiva
+                //N.B la sequenza di caselle tra le 2 esterne può anche essere 0, verrà chiamata la funzione cambio
+                //che però non avrà effetti concreti 
+                if(casella_vicina.inside == casella_iniziale.inside){
+                    controllo = true
+                }
+
+                //se la casella vicina non è vuota ed è del colore opposto a quella iniziale richiamo la funzione
+                //al posto di casella metterò casella vicina
+                //la funzione verrà richiamata più volte fino a quando non trovo una casella del colore uguale a quella iniziale
+                else if(casella_vicina.inside != casella_iniziale.inside && casella_vicina.inside != null){
+                    controlloCambio(casella_vicina, casella_iniziale, direzione, limite_x, limite_y)
+                }
+
+                //se l'interno di casella_vicina è vuoto allora non potrò mai avere una sequenza di caselle circondata da 2
+                //del colore opposto
+                else{
+                    controllo = false
+                }
+            }
+
+            const cambio = (casella, direzione, limite_x, limite_y) => {
+                if(casella.x != limite_x && casella.y != limite_y){
+                    let yx_vicino = casella.yx+direzione // 54(yx_vicino) = 64(casella.yx) -10(direzione)
+                    let casella_vicina = eval('casella'+ yx_vicino) //casella_vicina = casella54
+                    //console.log(casella_vicina)
+                    //si trova una sequenza di pedine del colore opposto e si cambia 
+                    if(casella_vicina.inside != casella.inside && casella_vicina.inside != null){
+                        casella_vicina.inside = casella.inside
+                        document.getElementById(yx_vicino).getElementsByClassName('wrapper')[0].innerHTML = cambioColore();
+                        $("#"+ String(casella_vicina.yx)+" .pedina").fadeTo(500, 0.3).fadeTo(500, 1);
+                        //document.getElementById(yx_vicino).innerHTML = cambioColore();
+                        //console.log(cambioColore())
+                        cambio(casella_vicina, direzione, limite_x, limite_y);
+                    }
+                }
+            }
+            const aggiungiPedina = (yx, casella) => {
+                //console.log(document.getElementById(yx).innerHTML
+                //con questo if controlla se la casella su cui premo ha al suo interno un quadratino
+                //le caselle coi quadratini hanno inside == null e un div "quadratino" al loro interno
+                if(document.getElementById(yx).getElementsByClassName('wrapper')[0].innerHTML != "" && casella.inside == null){
+                    if(turno == 'white'){
+                        //viene aggiunta la mossa all'elenco
+                        elenco_mosse.push("w"+yx)
+                        cercaAperture(elenco_mosse)
+                        //document.getElementById(yx).innerHTML = "<div class = 'white pedina'></div>"
+                        //viene sostituito il quadratino con una pedina bianca
+                        document.getElementById(yx).getElementsByClassName('wrapper')[0].innerHTML = "<div class = 'white pedina'></div>"
+                        casella.inside = "white"
+
+                        //destra
+                        if(casella.x != limite_destra){
+                            controlloCambio(casella, casella, direzione_destra, limite_destra, nessun_limite)
+                            if(controllo == true){
+                                cambio(casella, direzione_destra, limite_destra, nessun_limite)
+                            }
+                        }
+                        //sinistra
+                        if(casella.x != limite_sinistra){
+                            controlloCambio(casella, casella, direzione_sinistra, limite_sinistra, nessun_limite)
+                            if(controllo == true){
+                                cambio(casella, direzione_sinistra, limite_sinistra, nessun_limite)
+                            }
+                        }
+                        //NE
+                        if(casella.x != limite_destra && casella.y != limite_su){
+                            controlloCambio(casella, casella, direzione_NE, limite_destra, limite_su)
+                            if(controllo == true){
+                                cambio(casella, direzione_NE, limite_destra, limite_su)
+                            }
+                        }
+                        //ecc.
+                        if(casella.x != limite_destra && casella.y != limite_giù){
+                            controlloCambio(casella, casella, direzione_SE, limite_destra, limite_giù)
+                            if(controllo == true){
+                                cambio(casella, direzione_SE, limite_destra, limite_giù)
+                            }
+                        }
+                        if(casella.y != limite_su){
+                            controlloCambio(casella, casella, direzione_sopra, nessun_limite, limite_su)
+                            if(controllo == true){
+                                cambio(casella, direzione_sopra, nessun_limite, limite_su)
+                            }
+                        }
+                        if(casella.y != limite_giù){
+                            controlloCambio(casella, casella, direzione_sotto, nessun_limite, limite_giù)
+                            if(controllo == true){
+                                cambio(casella, direzione_sotto, nessun_limite, limite_giù)
+                            }
+                        }
+                        if(casella.x != limite_sinistra && casella.y != limite_su){
+                            controlloCambio(casella, casella, direzione_NW, limite_sinistra, limite_su)
+                            if(controllo == true){
+                                cambio(casella, direzione_NW, limite_sinistra, limite_su)
+                            }
+                        }
+                        if(casella.x != limite_sinistra && casella.y != limite_giù){
+                            controlloCambio(casella, casella, direzione_SW, limite_sinistra, limite_giù)
+                            if(controllo == true){
+                                cambio(casella, direzione_SW, limite_sinistra, limite_giù)
+                            }
+                        }  
+                    }
+                    if(turno == 'black'){
+                        elenco_mosse.push("b"+yx)
+                        cercaAperture(elenco_mosse)
+                        //document.getElementById(yx).innerHTML = "<div class = 'black pedina'></div>"
+                        document.getElementById(yx).getElementsByClassName('wrapper')[0].innerHTML = "<div class = 'black pedina'></div>"
+                        casella.inside = "black"
+                        if(casella.x != limite_destra){
+                            controlloCambio(casella, casella, direzione_destra, limite_destra, nessun_limite)
+                            if(controllo == true){
+                                cambio(casella, direzione_destra, limite_destra, nessun_limite)
+                            }
+                        }
+                        if(casella.x != limite_sinistra){
+                            controlloCambio(casella, casella, direzione_sinistra, limite_sinistra, nessun_limite)
+                            if(controllo == true){
+                                cambio(casella, direzione_sinistra, limite_sinistra, nessun_limite)
+                            }
+                        }
+                        if(casella.x != limite_destra && casella.y != limite_su){
+                            controlloCambio(casella, casella, direzione_NE, limite_destra, limite_su)
+                            if(controllo == true){
+                                cambio(casella, direzione_NE, limite_destra, limite_su)
+                            }
+                        }
+                        if(casella.x != limite_destra && casella.y != limite_giù){
+                            controlloCambio(casella, casella, direzione_SE, limite_destra, limite_giù)
+                            if(controllo == true){
+                                cambio(casella, direzione_SE, limite_destra, limite_giù)
+                            }
+                        }
+                        if(casella.y != limite_su){
+                            controlloCambio(casella, casella, direzione_sopra, nessun_limite, limite_su)
+                            if(controllo == true){
+                                cambio(casella, direzione_sopra, nessun_limite, limite_su)
+                            }
+                        }
+                        if(casella.y != limite_giù){
+                            controlloCambio(casella, casella, direzione_sotto, nessun_limite, limite_giù)
+                            if(controllo == true){
+                                cambio(casella, direzione_sotto, nessun_limite, limite_giù)
+                            }
+                        }
+                        if(casella.x != limite_sinistra && casella.y != limite_su){
+                            controlloCambio(casella, casella, direzione_NW, limite_sinistra, limite_su)
+                            if(controllo == true){
+                                cambio(casella, direzione_NW, limite_sinistra, limite_su)
+                            }
+                        }
+                        if(casella.x != limite_sinistra && casella.y != limite_giù){
+                            controlloCambio(casella, casella, direzione_SW, limite_sinistra, limite_giù)
+                            if(controllo == true){
+                                cambio(casella, direzione_SW, limite_sinistra, limite_giù)
+                            }
+                        }  
+                    }
+                    for(let casella of caselle){ //rimuovo i quadratini di questo turno prima di aggiungere i nuovi
+                        let yx = casella.yx
+                        if(casella.inside == null){
+                            //document.getElementById(yx).innerHTML = ""
+                            document.getElementById(yx).getElementsByClassName('wrapper')[0].innerHTML = ""
+                        
+                        }
+                    }
+                    cambiaTurno()
+                }
+
+                visualizzaContoPedine()
+                cercaMossa()
+            }
+
+            const vittoria = () => {
+                if(contapedineblack > contapedinewhite){
+                    document.getElementById("textarea").innerHTML += "Il nero ha vinto la partita con " + contapedineblack + " pedine"
+                }
+                else if(contapedinewhite > contapedineblack){
+                    document.getElementById("textarea").innerHTML += "Il bianco ha vinto la partita con " + contapedinewhite + " pedine"
+                }
+                else{
+                    document.getElementById("textarea").innerHTML += "la partita è finita in pareggio"
+                }
+            }
+            
+            const controlla = (casella, yx, direzione, limite_x, limite_y, giaChiamato = false) => {
+                let yx_vicino = yx + direzione
+                if (casella.y == limite_y || casella.x == limite_x){
+                    //console.log(0)
+                    return 0
+                }
+                let casella_vicino = eval('casella'+yx_vicino)
+                //console.log(casella_vicino)
+                if(giaChiamato){
+                    if (casella_vicino.inside == null){
+                        //console.log(casella_vicino)
+                        return casella_vicino
+                    }
+                    else if (casella_vicino.inside == casella.inside){
+                        return controlla(casella_vicino, yx_vicino, direzione, limite_x, limite_y, true)
+                    }
+                    else if (casella_vicino.inside != casella.inside){
+                        return 0
+                    }
+                }
+                else{
+                    //console.log(casella_vicino.inside, casella.inside)
+                    if ((casella_vicino.inside != null) && (casella_vicino.inside != casella.inside)){
+                        //console.log("sono qui")
+                        return controlla(casella_vicino, yx_vicino, direzione, limite_x, limite_y, true)
+                    }
+                    else{
+                        return 0
+                    }
+                }
+            }
+            let giàRicontrollato = false //serve per non far controllare più volte se ci sono mosse disponibili alla fine del gioco
+            let contatore = 0
+            const cercaMossa = () => {
+                let caselle_riempibili = []
+                for(let casella of caselle){
+                    // console.log("sono qui")
+                    // console.log(casella)
+
+                    if(casella.inside != turno){ // bisogna trovare le caselle che abbiano l'attributo inside = turno
+                        continue
+                    }
+                    //console.log(casella)
+                    let casella_sopra = controlla(casella, casella.yx, direzione_sopra, nessun_limite, limite_su)
+                    let casella_sotto = controlla(casella, casella.yx, direzione_sotto, nessun_limite, limite_giù)
+                    let casella_destra = controlla(casella, casella.yx, direzione_destra, limite_destra, nessun_limite)
+                    let casella_sinistra = controlla(casella, casella.yx, direzione_sinistra, limite_sinistra, nessun_limite)
+                    let casella_NE = controlla(casella, casella.yx, direzione_NE, limite_destra, limite_su)
+                    let casella_NW = controlla(casella, casella.yx, direzione_NW, limite_sinistra, limite_su)
+                    let casella_SE = controlla(casella, casella.yx, direzione_SE, limite_destra, limite_giù)
+                    let casella_SW = controlla(casella, casella.yx, direzione_SW, limite_sinistra, limite_giù)
+
+                    if(casella_sopra != 0){
+                        caselle_riempibili.push(casella_sopra)
+                        let yx = casella_sopra.yx
+                        document.getElementById(yx).innerHTML = '<div class="wrapper"><div class="quadratino"></div></div>'
+                    }
+
+                    if(casella_sotto != 0){
+                        caselle_riempibili.push(casella_sotto)
+                        let yx = casella_sotto.yx
+                        document.getElementById(yx).innerHTML = '<div class="wrapper"><div class="quadratino"></div></div>'
+                    }
+                    if(casella_destra != 0){
+                        caselle_riempibili.push(casella_destra)
+                        let yx = casella_destra.yx
+                        document.getElementById(yx).innerHTML = '<div class="wrapper"><div class="quadratino"></div></div>'
+                    }
+                    if(casella_sinistra != 0){
+                        caselle_riempibili.push(casella_sinistra)
+                        let yx = casella_sinistra.yx
+                        document.getElementById(yx).innerHTML = '<div class="wrapper"><div class="quadratino"></div></div>'
+                    }
+                    if(casella_NE != 0){
+                        caselle_riempibili.push(casella_NE)
+                        let yx = casella_NE.yx
+                        document.getElementById(yx).innerHTML = '<div class="wrapper"><div class="quadratino"></div></div>'
+                    }
+                    if(casella_NW != 0){
+                        caselle_riempibili.push(casella_NW)
+                        let yx = casella_NW.yx
+                        document.getElementById(yx).innerHTML = '<div class="wrapper"><div class="quadratino"></div></div>'
+                    }
+                    if(casella_SE != 0){
+                        caselle_riempibili.push(casella_SE)
+                        let yx = casella_SE.yx
+                        document.getElementById(yx).innerHTML = '<div class="wrapper"><div class="quadratino"></div></div>'
+                    }
+                    if(casella_SW != 0){
+                        caselle_riempibili.push(casella_SW)
+                        let yx = casella_SW.yx
+                        document.getElementById(yx).innerHTML = '<div class="wrapper"><div class="quadratino"></div></div>'
+                    }
+                }
+                //console.log(caselle_riempibili)
+                
+                //il colore corrispondente al turno potrebbe non avere mosse disponibili
+                //quindi l'alro colore deve giocare 2 turni consecutivi
+                //però si entra in questa parte di codice anche a fine gioco quando non ci sono più caselle riempibili
+                //quindi lo faccio eseguire solo una volta se il numero di caselle riempite è uguale a 64
+                if(caselle_riempibili.length == 0 && giàRicontrollato == false){ 
+                    //es. il bianco ha appena aggiunto una pedina, si cambia il turno ma il nero non
+                    //ha mosse disponibili, il turno ritorna al bianco
+                    cambiaTurno()  
+                    contatore += 1//il contatore mi serve nel caso in cui la partita finisca prima di raggiungere le 64 mosse
+                    if(contapedineblack + contapedinewhite == 64 || contatore == 5){
+                        giàRicontrollato = true
+                        vittoria()
+                    }
+                    cercaMossa()
+                }
+                caselle_riempibili = []
+            }
+
+            const ricarica = () =>{
+                //setTimeout(ricarica, 100)
+                $("#board").fadeTo(800, 0, function(){ // 500ms, 0 significa che scompare completamente
+                    //svuoto le caselle "virtuali"
+                    for(casella of caselle){ 
+                        casella.inside = null
+                    }
+                    //rimetto il turno iniziale
+                    turno = "black"
+
+                    //svuoto elenco mosse
+                    elenco_mosse = []
+
+                    //svuoto il div con l'apertura
+                    document.getElementById("tipo_apertura").innerHTML = ""
+
+                    //svuoto la scacchiera di tutti i div
+                    document.getElementById("board").innerHTML = ""
+
+                    //rigenero la scacchiera da 0
+                    generaScacchiera()
+
+                    //svuoto la textarea
+                    textarea.innerHTML = ""
+                }).fadeTo(800,1)
+                
+            }
+        </script>
+    </head>
+    <body onload="generaScacchiera();"> 
+        <div id="left-col">
+            <div id="contapedinewhite" class="white">2</div>
+            <div id="contapedineblack" class="black">2</div>
+            <div id="nuova_partita" onclick="ricarica();"></div>
+            <textarea id="textarea"></textarea>
+            <div id="apertura">
+                <div id="titolo">APERTURA</div>
+                <div id="tipo_apertura"></div>
+            </div>
+        </div>
+        <div id="outer-board">
+            <div id="board">
+            </div>
+        </div>
+        <div id = "titolo_pagina">
+            OTHELLO
+        </div>
+    </body>
+</html>
